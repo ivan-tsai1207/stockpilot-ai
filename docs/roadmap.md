@@ -13,24 +13,28 @@
 
 - Stock price
 - Historical K-line
+- Minute-level K-line intervals
 - Institutional flows
 - Margin data
 - News summary
 - Data freshness tracking
+- Taiwan and US index snapshots
 
 ## Phase 3: Analysis engine MVP
 
 - Technical indicators
+- Categorized indicator sets
 - Market and sector state
 - Stock analysis report generation
 - Entry / watch / no-entry decision
 - Bull / Base / Bear scenario output
-- Structured memory summary generation
+- Knowledge graph fact extraction
 
 ## Phase 4: LLM session layer
 
 - Isolated stock sessions
-- Session summary memory
+- Analysis preset selection
+- Knowledge graph memory
 - Analysis snapshot storage
 - Prompt assembly service
 - Web research orchestration

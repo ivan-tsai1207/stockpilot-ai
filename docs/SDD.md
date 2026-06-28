@@ -64,6 +64,55 @@
 
 ---
 
+## 4.1 功能需求重構總覽
+
+本系統的需求重構後，應以使用者可感知的產品能力來描述，而不是只以內部模組切分。
+
+四個主域如下：
+
+1. 市場與看盤資料
+2. LLM 分析工作流
+3. 策略與知識圖譜記憶
+4. 投資追蹤與提醒
+
+### 4.1.1 市場與看盤資料
+
+需提供：
+
+- 台股大盤與美股大盤作為一級資訊
+- 個股多週期 K 線
+- 每根 K 線完整 OHLCV 資料
+- 分層技術指標
+- 類股、題材與市場廣度資訊
+
+### 4.1.2 LLM 分析工作流
+
+需提供：
+
+- 使用者主動建立個股分析 session
+- 透過股票選擇 + 分析模組啟動分析
+- 可保存與重用的 Analysis Preset
+- 不同股票之間完全隔離的分析上下文
+
+### 4.1.3 策略與知識圖譜記憶
+
+需提供：
+
+- 使用者可設定多組 Strategy Profile
+- Analysis Preset 與 Strategy Profile 分離
+- 記憶層以 Obsidian 風格內建知識圖譜為核心
+- LLM 檢索優先使用圖譜節點、關聯與結構化 facts
+
+### 4.1.4 投資追蹤與提醒
+
+需提供：
+
+- Watchlist 與 Portfolio 監控
+- 條件提醒與重分析
+- 純分析與監控，不納入自動下單或券商委託執行
+
+---
+
 ## 5. 系統模組設計
 
 ### 5.1 Data Ingestion Module：資料抓取模組
@@ -76,11 +125,14 @@
 
 - 即時股價
 - 歷史 K 線
+- 分鐘級 K 線（1分、5分、15分、1小時）
 - 成交量
-- 均線
-- MACD
-- KD
-- RSI
+- K 線 OHLCV 明細
+- 趨勢類技術指標
+- 動能類技術指標
+- 成交量類技術指標
+- 波動類技術指標
+- 多空判斷類技術指標
 - 法人買賣超
 - 融資融券
 - 主力券商分點
@@ -91,8 +143,11 @@
 - 新聞
 - 法說會與重大公告
 - 大盤指數
+- 台股市場廣度
+- 類股表現
 - 台指期夜盤
 - 美股主要指數
+- 美股指數對台股影響摘要
 - 匯率、利率與國際消息
 
 #### 輸出
@@ -106,9 +161,18 @@
 ### 分析內容
 
 - 台股整體趨勢
+- 加權指數
+- 櫃買指數
+- 成交值
+- 漲跌家數
+- 類股表現
 - 大盤是否多頭、震盪、轉弱
 - 台指期夜盤方向
 - 美股與國際市場影響
+- 道瓊工業指數
+- S&P 500
+- NASDAQ
+- 費城半導體指數
 - 產業目前是強勢、轉強、整理或退燒
 - 資金是否流入該族群
 
@@ -172,14 +236,18 @@
 
 ### 分析內容
 
+- K 線週期切換：1分、5分、15分、1小時、日、週、月、年
+- 每根 K 線明細：開盤價、最高價、最低價、收盤價、成交量、當前價
 - 股價目前位階
 - 均線排列
 - 支撐與壓力
 - K 線型態
 - 成交量變化
-- MACD
-- KD
-- RSI
+- 趨勢類指標：MA、EMA、WMA、VWAP、Bollinger Bands、SAR
+- 動能類指標：MACD、RSI、KD/Stochastic、CCI、ROC、Momentum
+- 成交量類指標：Volume MA、OBV、MFI、Volume Ratio
+- 波動類指標：ATR、Historical Volatility
+- 多空判斷類指標：DMI/ADX
 - 是否過熱
 - 是否突破
 - 是否假突破
@@ -323,12 +391,11 @@ LLM 不是資料來源本身，而是：
 
 ### 7.4 記憶體設計原則
 
-系統應採用「結構化記憶 + 摘要記憶」，而非保留完整原文對話。
+系統不應再以 session 摘要作為主記憶設計中心，而應改為「結構化記憶 + 知識圖譜記憶 + 最小必要對話片段」。
 
 每個股票 session 應保存：
 
 - 研究主題
-- 最新分析摘要
 - 已確認事實
 - 推論與假設
 - 候選進場區間
@@ -336,6 +403,7 @@ LLM 不是資料來源本身，而是：
 - 使用者關注點
 - 尚未解答的問題
 - 最近一次策略輸出
+- 對應圖譜節點與關聯
 
 ### 7.5 記憶分層
 
@@ -344,8 +412,8 @@ LLM 不是資料來源本身，而是：
 1. `Raw Conversation Log`
    保留原始對話，供稽核與除錯，但不預設回灌給模型。
 
-2. `Session Summary Memory`
-   由系統定期整理成 300 至 800 tokens 的摘要，作為後續對話基礎。
+2. `Knowledge Graph Memory`
+   以 Obsidian 風格內建圖譜為核心，使用 note / entity / link / tag / backlink 來保存脈絡。
 
 3. `Structured Fact Memory`
    使用欄位化資料儲存已確認事實，例如：
@@ -354,12 +422,35 @@ LLM 不是資料來源本身，而是：
    - 法人連買天數
    - 最近重大新聞
 
-4. `Strategy Output Snapshot`
+4. `Strategy Output Snapshot + Minimal Context Window`
    每次模型給出的結論與策略建議都應保存快照，方便比較前後變化。
+   對話回灌時只附加最新必要片段，而非完整摘要歷史。
+
+### 7.5.1 知識圖譜節點類型
+
+至少需支援：
+
+- `Stock Note`
+- `Theme Note`
+- `Strategy Note`
+- `Event Note`
+- `Risk Note`
+- `User Insight Note`
+
+### 7.5.2 知識圖譜關聯類型
+
+至少需支援：
+
+- `related_to`
+- `supports`
+- `contradicts`
+- `triggered_by`
+- `watch_for`
+- `derived_from`
 
 ### 7.6 記憶更新時機
 
-以下情況應重新產生 session summary：
+以下情況應更新圖譜節點、結構化 facts 或最小上下文：
 
 - 對話超過指定輪數
 - 有重大新聞事件
@@ -372,7 +463,7 @@ LLM 不是資料來源本身，而是：
 為避免 session 成本過高，系統應採用：
 
 - 僅回灌最新對話片段
-- 加入結構化摘要而非完整歷史
+- 優先取用圖譜節點與結構化 facts
 - 僅在需要時附加相關新聞與籌碼資料
 - 過期資料不自動帶入 prompt
 - 使用時間窗與資料新鮮度控制上下文大小
@@ -455,6 +546,28 @@ Strategy Profile 應支援版本化。
 - `strategy_profile_version`
 - `prompt_template_version`
 
+### 8.6 Analysis Preset
+
+除 Strategy Profile 外，系統還應支援可重用的 `Analysis Preset`。
+
+Analysis Preset 用來定義：
+
+- 本次要問 LLM 的目的
+- 需要哪些資料欄位
+- 預設分析輸出格式
+- 預設套用哪一類策略
+
+至少需內建以下 preset：
+
+- `盤中快速判斷`
+- `波段趨勢分析`
+- `基本面研究`
+- `技術面結構檢查`
+- `風險檢查`
+- `自訂模板`
+
+Analysis Preset 可跨 session 重用，但 session 本身仍維持股票隔離。
+
 ---
 
 ## 9. 多使用者與資料隔離設計
@@ -496,13 +609,14 @@ Strategy Profile 應支援版本化。
 每次使用者發起個股分析時，系統應執行：
 
 1. 讀取使用者策略設定
-2. 讀取該股票對應的獨立 session summary
+2. 讀取該股票對應的獨立 session 記憶與知識圖譜關聯
 3. 拉取最新市場資料與新聞資料
 4. 判斷資料新鮮度是否足夠
-5. 組裝 prompt
-6. 呼叫具聯網能力或外部 research tool 的 LLM 流程
-7. 產出分析結果
-8. 寫回結構化記憶與分析快照
+5. 讀取 Analysis Preset
+6. 組裝 prompt
+7. 呼叫具聯網能力或外部 research tool 的 LLM 流程
+8. 產出分析結果
+9. 寫回知識圖譜、結構化記憶與分析快照
 
 ### 10.2 Prompt 組成
 
@@ -510,12 +624,13 @@ Strategy Profile 應支援版本化。
 
 - System Rulebook
 - Strategy Profile
+- Analysis Preset
 - Current Market Context
-- Stock-specific Session Summary
+- Stock-specific Knowledge Graph Context
 - Fresh Data Bundle
 - User Query
 
-其中 `Stock-specific Session Summary` 不得替換成全站對話歷史。
+其中 `Stock-specific Knowledge Graph Context` 不得替換成全站對話歷史。
 
 ### 10.3 聯網調查流程
 
@@ -593,6 +708,21 @@ Strategy Profile 應支援版本化。
 - `created_at`
 - `updated_at`
 
+### 11.1.1 AnalysisPreset
+
+- `id`
+- `user_id`
+- `name`
+- `analysis_mode`
+- `objective`
+- `required_data_fields`
+- `default_output_template`
+- `default_strategy_profile_id`
+- `is_system_preset`
+- `version`
+- `created_at`
+- `updated_at`
+
 ### 11.2 StockAnalysisSession
 
 - `id`
@@ -612,7 +742,6 @@ Strategy Profile 應支援版本化。
 ### 11.3 SessionMemory
 
 - `session_id`
-- `summary_text`
 - `confirmed_facts`
 - `inferences`
 - `hypotheses`
@@ -620,6 +749,28 @@ Strategy Profile 應支援版本化。
 - `watch_points`
 - `entry_plan`
 - `updated_at`
+
+### 11.3.1 KnowledgeNode
+
+- `id`
+- `user_id`
+- `session_id`
+- `node_type`
+- `title`
+- `content`
+- `tags`
+- `source_refs`
+- `created_at`
+- `updated_at`
+
+### 11.3.2 KnowledgeRelation
+
+- `id`
+- `from_node_id`
+- `to_node_id`
+- `relation_type`
+- `weight`
+- `created_at`
 
 ### 11.4 AnalysisSnapshot
 
@@ -655,11 +806,12 @@ Strategy Profile 應支援版本化。
 建議先做：
 
 1. Strategy Profile 設定
-2. 個股獨立 session
-3. session summary 記憶
-4. 單檔股票分析 API
-5. 分析快照保存
-6. 盤中與收盤後兩種分析模式
+2. Analysis Preset 設定
+3. 個股獨立 session
+4. 知識圖譜記憶
+5. 單檔股票分析 API
+6. 分析快照保存
+7. 盤中與收盤後兩種分析模式
 
 ### 12.3 成功條件
 
@@ -711,6 +863,23 @@ Strategy Profile 應支援版本化。
 | created_at | timestamptz | 建立時間 |
 | updated_at | timestamptz | 更新時間 |
 
+### 13.2.1 AnalysisPreset
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | preset 主鍵 |
+| user_id | uuid | 所屬使用者，可為空代表系統預設 |
+| name | varchar | preset 名稱 |
+| analysis_mode | varchar | intraday / swing / fundamental / technical / risk |
+| objective | text | 分析目的 |
+| required_data_fields | jsonb | 必要資料欄位 |
+| default_output_template | jsonb | 預設輸出格式 |
+| default_strategy_profile_id | uuid | 預設策略 |
+| is_system_preset | boolean | 是否系統內建 |
+| version | integer | 版本 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
 ### 13.3 StockAnalysisSession
 
 | 欄位 | 型別 | 說明 |
@@ -722,6 +891,7 @@ Strategy Profile 應支援版本化。
 | market | varchar | TWSE / OTC |
 | timeframe | varchar | short_term / swing / long_term |
 | session_type | varchar | research / monitor / intraday |
+| analysis_preset_id | uuid | 使用中的分析模板 |
 | title | varchar | session 標題 |
 | status | varchar | active / archived |
 | last_analyzed_at | timestamptz | 最後分析時間 |
@@ -750,7 +920,6 @@ Strategy Profile 應支援版本化。
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | session_id | uuid | 對應 session |
-| summary_text | text | session 摘要 |
 | confirmed_facts | jsonb | 已確認事實 |
 | inferences | jsonb | 推論 |
 | hypotheses | jsonb | 假設 |
@@ -759,6 +928,32 @@ Strategy Profile 應支援版本化。
 | entry_plan | jsonb | 進場規劃 |
 | latest_decision | varchar | 最新決策 |
 | updated_at | timestamptz | 更新時間 |
+
+### 13.5.1 KnowledgeNode
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 節點主鍵 |
+| user_id | uuid | 所屬使用者 |
+| session_id | uuid | 關聯 session |
+| node_type | varchar | stock / theme / strategy / event / risk / insight |
+| title | varchar | 節點標題 |
+| content | text | 節點內容 |
+| tags | jsonb | 標籤 |
+| source_refs | jsonb | 來源參照 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+### 13.5.2 KnowledgeRelation
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 關聯主鍵 |
+| from_node_id | uuid | 起點節點 |
+| to_node_id | uuid | 終點節點 |
+| relation_type | varchar | related_to / supports / contradicts / triggered_by / watch_for / derived_from |
+| weight | numeric | 關聯權重 |
+| created_at | timestamptz | 建立時間 |
 
 ### 13.6 AnalysisSnapshot
 
@@ -807,6 +1002,20 @@ Strategy Profile 應支援版本化。
 | expires_at | timestamptz | 快取失效時間 |
 | created_at | timestamptz | 建立時間 |
 
+### 13.8.1 MarketIndexSnapshot
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 指數快照主鍵 |
+| market_type | varchar | tw / us |
+| index_code | varchar | twii / tpex / dji / spx / ixic / sox |
+| index_name | varchar | 指數名稱 |
+| current_value | numeric | 當前點位 |
+| change_value | numeric | 漲跌點數 |
+| change_percent | numeric | 漲跌幅 |
+| breadth_payload | jsonb | 漲跌家數、類股表現等 |
+| captured_at | timestamptz | 擷取時間 |
+
 ### 13.9 PortfolioHolding
 
 | 欄位 | 型別 | 說明 |
@@ -841,13 +1050,13 @@ Strategy Profile 應支援版本化。
    管理使用者策略、版本控管、預設策略套用。
 
 4. `market-data-service`
-   抓取並正規化股價、籌碼、財報、新聞與大盤資料。
+   抓取並正規化股價、分鐘線/日線 K 線、籌碼、財報、新聞與台美大盤資料。
 
 5. `analysis-orchestrator`
    組裝 prompt、決定何時聯網、呼叫 LLM、寫回快照與記憶。
 
-6. `memory-service`
-   負責 session summary、結構化記憶、摘要壓縮與更新策略。
+6. `knowledge-graph-service`
+   負責知識圖譜節點、關聯、反向連結、結構化記憶與圖譜檢索。
 
 7. `notification-service`
    根據風險事件與策略偏好發出提醒。
@@ -866,7 +1075,7 @@ Strategy Profile 應支援版本化。
 ### 14.3 元件責任
 
 - `PostgreSQL`
-  存放交易策略、session、message、memory、snapshot、持股與使用者資料。
+  存放交易策略、analysis preset、session、message、graph、memory、snapshot、持股與使用者資料。
 
 - `Redis`
   存放短期 session cache、prompt 組裝中間結果、rate limit 與任務鎖。
@@ -884,7 +1093,7 @@ Strategy Profile 應支援版本化。
 Adapter 至少要統一：
 
 - `generateAnalysis()`
-- `summarizeSession()`
+- `retrieveKnowledgeContext()`
 - `extractStructuredFacts()`
 - `runWebResearch()`
 
@@ -898,7 +1107,8 @@ Prompt 不應散落在 controller 或前端，而應集中在 `prompt-template-l
 
 - `system_rulebook_prompt`
 - `strategy_profile_prompt`
-- `session_memory_prompt`
+- `analysis_preset_prompt`
+- `knowledge_graph_prompt`
 - `data_bundle_prompt`
 - `user_query_prompt`
 
@@ -910,7 +1120,7 @@ Prompt 不應散落在 controller 或前端，而應集中在 `prompt-template-l
 
 - 收盤後重跑持股分析
 - 每日盤前市場摘要
-- session 摘要壓縮
+- session 對話萃取成圖譜節點與關聯
 - 新聞來源驗證
 - 法人異常掃描
 - 大量 watchlist 股票批次重分析
@@ -941,11 +1151,12 @@ Prompt 不應散落在 controller 或前端，而應集中在 `prompt-template-l
 1. API Gateway 驗證使用者身份
 2. Session Service 找到或建立對應 `stock session`
 3. Strategy Service 載入策略設定與版本
-4. Market Data Service 拉取最新資料與資料新鮮度
-5. Memory Service 取回該股票的摘要記憶
-6. Analysis Orchestrator 組裝 prompt 並呼叫 LLM
-7. 回傳分析結果給前端
-8. Background Worker 非同步更新 summary 與 snapshot
+4. Session Service 載入 Analysis Preset
+5. Market Data Service 拉取最新資料與資料新鮮度
+6. Knowledge Graph Service 取回該股票的圖譜上下文與結構化 facts
+7. Analysis Orchestrator 組裝 prompt 並呼叫 LLM
+8. 回傳分析結果給前端
+9. Background Worker 非同步更新圖譜節點、關聯與 snapshot
 
 ### 15.2 收盤後批次分析時
 

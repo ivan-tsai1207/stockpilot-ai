@@ -83,6 +83,7 @@ This includes:
 
 When updating this repo, prioritize these files:
 
+- `docs/functional-requirements.md`
 - `docs/SDD.md`
 - `docs/api-contract.md`
 - `docs/roadmap.md`
@@ -106,6 +107,7 @@ Read these in order:
 
 1. `AGENTS.md`
 2. `README.md`
-3. `docs/SDD.md`
-4. `docs/api-contract.md`
-5. `docs/roadmap.md`
+3. `docs/functional-requirements.md`
+4. `docs/SDD.md`
+5. `docs/api-contract.md`
+6. `docs/roadmap.md`

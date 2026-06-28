@@ -18,9 +18,10 @@ StockPilot AI 的目標，是幫助使用者從資訊過載的市場環境中，
 如果你是第一次進入這個 repo 的協作者，或是其他要接手的 LLM，建議先閱讀以下文件：
 
 1. `AGENTS.md`
-2. `docs/SDD.md`
-3. `docs/api-contract.md`
-4. `docs/roadmap.md`
+2. `docs/functional-requirements.md`
+3. `docs/SDD.md`
+4. `docs/api-contract.md`
+5. `docs/roadmap.md`
 
 ## 核心體驗
 
@@ -39,6 +40,7 @@ StockPilot AI 的目標，是幫助使用者從資訊過載的市場環境中，
 ## 文件列表
 
 - `AGENTS.md`
+- `docs/functional-requirements.md`
 - `docs/SDD.md`
 - `docs/analysis-rulebook.md`
 - `docs/api-contract.md`
