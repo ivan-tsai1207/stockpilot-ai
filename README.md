@@ -6,6 +6,13 @@ AI Investment OS for Taiwan stock investors.
 
 StockPilot AI is designed to help users move from market information overload to structured investment decisions.
 
+The current specification also defines:
+
+- isolated stock-specific LLM sessions
+- structured memory instead of a single long chat
+- versioned user strategy profiles
+- multi-user analysis boundaries
+
 ## Core experience
 
 - Research Workspace
