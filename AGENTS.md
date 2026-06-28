@@ -87,7 +87,6 @@ When updating this repo, prioritize these files:
 - `docs/api-contract.md`
 - `docs/roadmap.md`
 - `README.md`
-- `index.html`
 
 ## Git workflow
 

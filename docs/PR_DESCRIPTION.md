@@ -11,7 +11,6 @@ The focus of this change is:
 - versioned user strategy profiles
 - multi-user data isolation
 - backend service boundaries and database schema
-- homepage content updated to reflect the new architecture
 
 ## Why
 
@@ -44,10 +43,8 @@ The product needs to support:
   - memory summarization
   - strategy management
 - added `AGENTS.md` so future LLM collaborators can understand repository goals quickly
-- updated `index.html` to present the new LLM/session/strategy architecture on the project homepage
 
 ## Notes
 
 - This branch does not modify `main`
 - This branch is intended for review first
-- GitHub Pages will only change after merge or explicit deployment from the approved branch
