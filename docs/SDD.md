@@ -238,3 +238,728 @@
 - 突破確認後再進
 - 風險偏高，先等整理
 - 技術轉弱，不適合進場
+
+---
+
+## 6. LLM 分析架構設計
+
+### 6.1 設計目標
+
+系統將串接 LLM API，讓每一檔股票都擁有自己的分析對話、自己的記憶、自己的策略輸出，而不是把所有股票都塞進同一個長對話。
+
+此設計的核心原則：
+
+- 每檔股票的 session 必須獨立
+- 不同股票之間預設不可互相污染上下文
+- 共用的是系統規則與使用者策略，不共用的是個股對話內容
+- 要降低 token 消耗，不能把完整歷史對話一直送進模型
+- 要支援多使用者，每位使用者都能有自己的投資偏好與策略模板
+
+### 6.2 LLM 在系統中的角色
+
+LLM 不是資料來源本身，而是：
+
+- 負責整理資料
+- 負責根據規則做推論
+- 負責輸出可讀分析
+- 負責依照使用者策略產生不同風格的建議
+
+系統不可把 LLM 當成可以憑空預測未來的黑盒。所有結論仍需依照：
+
+> 證據 → 推論 → 策略 → 風險
+
+### 6.3 對未來趨勢的定義
+
+系統可做「未來趨勢研判」，但不得輸出保證式預測。
+
+未來趨勢輸出必須改用情境化方式表達：
+
+- Bull Scenario：樂觀情境
+- Base Scenario：中性情境
+- Bear Scenario：保守情境
+
+每個情境都必須附上：
+
+- 成立條件
+- 失效條件
+- 需觀察指標
+- 對應操作策略
+
+---
+
+## 7. Session 與記憶體設計
+
+### 7.1 Session 隔離原則
+
+系統中的對話單位不是「使用者總聊天視窗」，而是：
+
+`User + Strategy Profile + Symbol + Market + Timeframe`
+
+代表：
+
+- 同一位使用者分析 2308 與 2408，必須是兩個不同 session
+- 同一檔股票若切換短線與波段，也可以是不同 session
+- 同一位使用者若切換不同策略模板，也應產生不同的分析上下文
+
+### 7.2 Session 類型
+
+建議至少區分三種 session：
+
+- `stock_research_session`：個股研究對話
+- `stock_monitor_session`：持股追蹤與後續觀察
+- `intraday_session`：盤中短時效分析
+
+### 7.3 為何不能全部存在同一個 session
+
+若所有股票共用同一個 session，會產生：
+
+- token 持續膨脹
+- 不同股票的訊號互相干擾
+- 先前對話裡的假設污染新分析
+- 無法針對不同股票建立獨立研究脈絡
+- 難以做多使用者資料隔離
+
+因此系統不得把全站對話記錄直接作為單一 prompt 歷史。
+
+### 7.4 記憶體設計原則
+
+系統應採用「結構化記憶 + 摘要記憶」，而非保留完整原文對話。
+
+每個股票 session 應保存：
+
+- 研究主題
+- 最新分析摘要
+- 已確認事實
+- 推論與假設
+- 候選進場區間
+- 風險事件
+- 使用者關注點
+- 尚未解答的問題
+- 最近一次策略輸出
+
+### 7.5 記憶分層
+
+建議分成四層：
+
+1. `Raw Conversation Log`
+   保留原始對話，供稽核與除錯，但不預設回灌給模型。
+
+2. `Session Summary Memory`
+   由系統定期整理成 300 至 800 tokens 的摘要，作為後續對話基礎。
+
+3. `Structured Fact Memory`
+   使用欄位化資料儲存已確認事實，例如：
+   - 最新財報結論
+   - 支撐壓力區
+   - 法人連買天數
+   - 最近重大新聞
+
+4. `Strategy Output Snapshot`
+   每次模型給出的結論與策略建議都應保存快照，方便比較前後變化。
+
+### 7.6 記憶更新時機
+
+以下情況應重新產生 session summary：
+
+- 對話超過指定輪數
+- 有重大新聞事件
+- 有新的技術面轉折
+- 使用者切換投資策略
+- 收盤後需要整理當日結論
+
+### 7.7 Token 控制策略
+
+為避免 session 成本過高，系統應採用：
+
+- 僅回灌最新對話片段
+- 加入結構化摘要而非完整歷史
+- 僅在需要時附加相關新聞與籌碼資料
+- 過期資料不自動帶入 prompt
+- 使用時間窗與資料新鮮度控制上下文大小
+
+---
+
+## 8. 策略設定系統設計
+
+### 8.1 設計目標
+
+系統不是只給單一使用者使用，因此策略不能寫死在 prompt 裡。必須把使用者的投資偏好做成可設定、可版本化、可套用的策略設定系統。
+
+### 8.2 Strategy Profile 概念
+
+每位使用者可以有一個或多個 `Strategy Profile`。
+
+範例：
+
+- 保守波段
+- 短線拉回買
+- 成長股趨勢追蹤
+- ETF 配置型
+
+每個 profile 會影響：
+
+- 模型輸出的語氣與建議方式
+- 可接受的風險等級
+- 是否接受追高
+- 停損停利寬度
+- 偏好的觀察週期
+- 是否允許分批進場
+- 是否重視基本面大於技術面
+
+### 8.3 策略設定欄位
+
+建議至少包含以下欄位：
+
+- `profile_name`
+- `risk_tolerance`
+- `holding_period`
+- `avoid_chasing_high`
+- `prefer_pullback_entry`
+- `allow_batch_entry`
+- `max_position_size`
+- `stop_loss_rule`
+- `take_profit_rule`
+- `preferred_indicators`
+- `strategy_prompt_overrides`
+- `notification_preferences`
+
+### 8.4 系統策略與使用者策略分離
+
+系統內部應區分兩層規則：
+
+- `System Rulebook`
+  所有使用者共用，定義不可違反的分析與風控原則。
+
+- `User Strategy Profile`
+  每位使用者可調整，決定輸出偏好與操作風格。
+
+這代表：
+
+- 使用者可以偏好追高，但系統仍必須提示追高風險
+- 使用者可以接受高波動，但系統仍不得省略停損控管
+- 使用者可以偏好短線，但系統仍需標示資料時效性
+
+### 8.5 策略版本控管
+
+Strategy Profile 應支援版本化。
+
+原因：
+
+- 使用者策略可能調整
+- 歷史分析應能追溯當時使用哪個策略版本
+- 不能讓舊分析被新策略覆寫後失真
+
+每份分析結果應記錄：
+
+- `strategy_profile_id`
+- `strategy_profile_version`
+- `prompt_template_version`
+
+---
+
+## 9. 多使用者與資料隔離設計
+
+### 9.1 多租戶原則
+
+系統必須視為多使用者平台，而非單人工具。
+
+因此所有資料都必須綁定：
+
+- `user_id`
+- `workspace_id` 或 `tenant_id`
+- `strategy_profile_id`
+- `session_id`
+
+### 9.2 隔離範圍
+
+以下內容不得跨使用者共用：
+
+- session 對話內容
+- session 摘要記憶
+- 個人投資策略
+- 持股資料
+- 自訂停損停利規則
+
+可共用但需標準化的只有：
+
+- 市場資料
+- 新聞資料
+- 公開財報資料
+- 系統規則書
+
+---
+
+## 10. LLM Orchestration 設計
+
+### 10.1 核心流程
+
+每次使用者發起個股分析時，系統應執行：
+
+1. 讀取使用者策略設定
+2. 讀取該股票對應的獨立 session summary
+3. 拉取最新市場資料與新聞資料
+4. 判斷資料新鮮度是否足夠
+5. 組裝 prompt
+6. 呼叫具聯網能力或外部 research tool 的 LLM 流程
+7. 產出分析結果
+8. 寫回結構化記憶與分析快照
+
+### 10.2 Prompt 組成
+
+每次送入模型的內容應由以下區塊組成：
+
+- System Rulebook
+- Strategy Profile
+- Current Market Context
+- Stock-specific Session Summary
+- Fresh Data Bundle
+- User Query
+
+其中 `Stock-specific Session Summary` 不得替換成全站對話歷史。
+
+### 10.3 聯網調查流程
+
+若系統允許模型聯網調查，應限制其調查目的：
+
+- 查最新新聞
+- 查公司公告
+- 查法人與產業相關資料
+- 查近期事件是否造成股價異常
+
+聯網結果必須回寫成：
+
+- 事實摘要
+- 來源時間
+- 來源類型
+- 是否已驗證
+
+不可僅依賴模型口語描述而不保存來源資訊。
+
+### 10.4 分析輸出格式
+
+每次模型輸出建議至少包含：
+
+- 目前狀態
+- 關鍵事實
+- 推論
+- 支撐與壓力
+- 風險
+- Bull / Base / Bear 情境
+- 策略建議
+- 一句話結論
+
+並且必須明確區分：
+
+- 已確認事實
+- 推論
+- 假設
+
+### 10.5 不同股票之間的邏輯共用方式
+
+不同股票之間應共用：
+
+- 分析流程
+- 規則書
+- prompt 模板
+- 策略引擎邏輯
+
+不同股票之間不得共用：
+
+- 對話內容
+- session 記憶
+- 個股未驗證假設
+- 個股的短線交易判斷
+
+---
+
+## 11. 建議資料模型
+
+### 11.1 StrategyProfile
+
+- `id`
+- `user_id`
+- `name`
+- `risk_tolerance`
+- `holding_period`
+- `avoid_chasing_high`
+- `prefer_pullback_entry`
+- `allow_batch_entry`
+- `stop_loss_rule`
+- `take_profit_rule`
+- `max_position_size`
+- `preferred_indicators`
+- `prompt_overrides`
+- `version`
+- `created_at`
+- `updated_at`
+
+### 11.2 StockAnalysisSession
+
+- `id`
+- `user_id`
+- `strategy_profile_id`
+- `symbol`
+- `market`
+- `timeframe`
+- `session_type`
+- `title`
+- `status`
+- `last_analyzed_at`
+- `summary_version`
+- `created_at`
+- `updated_at`
+
+### 11.3 SessionMemory
+
+- `session_id`
+- `summary_text`
+- `confirmed_facts`
+- `inferences`
+- `hypotheses`
+- `risk_notes`
+- `watch_points`
+- `entry_plan`
+- `updated_at`
+
+### 11.4 AnalysisSnapshot
+
+- `id`
+- `session_id`
+- `strategy_profile_version`
+- `prompt_template_version`
+- `data_freshness`
+- `market_context`
+- `news_analysis`
+- `fundamental_analysis`
+- `technical_analysis`
+- `chip_analysis`
+- `scenario_analysis`
+- `decision`
+- `created_at`
+
+---
+
+## 12. 實作建議
+
+### 12.1 第一階段不要做的事
+
+以下功能不建議在第一版就做太滿：
+
+- 自動交易
+- 過度複雜的多代理協作
+- 把所有聊天都做成長記憶
+- 未經驗證的超長期價格預測
+
+### 12.2 MVP 優先順序
+
+建議先做：
+
+1. Strategy Profile 設定
+2. 個股獨立 session
+3. session summary 記憶
+4. 單檔股票分析 API
+5. 分析快照保存
+6. 盤中與收盤後兩種分析模式
+
+### 12.3 成功條件
+
+此架構若設計正確，應達成：
+
+- 同一使用者可同時追蹤多檔股票，但互不污染
+- 不同使用者可有不同投資策略
+- LLM 成本可被控制
+- 分析結果可追溯
+- 策略調整後仍可回看舊版本分析
+
+---
+
+## 13. 資料表 Schema 細化
+
+### 13.1 User
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 使用者主鍵 |
+| email | varchar | 登入帳號 |
+| display_name | varchar | 顯示名稱 |
+| status | varchar | active / suspended |
+| default_strategy_profile_id | uuid | 預設策略 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+### 13.2 StrategyProfile
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 策略主鍵 |
+| user_id | uuid | 所屬使用者 |
+| name | varchar | 策略名稱 |
+| description | text | 策略說明 |
+| risk_tolerance | varchar | low / medium / high |
+| holding_period | varchar | intraday / short_term / swing / long_term |
+| avoid_chasing_high | boolean | 是否避免追高 |
+| prefer_pullback_entry | boolean | 是否偏好拉回買 |
+| allow_batch_entry | boolean | 是否允許分批 |
+| max_position_size | numeric | 單一標的最大資金占比 |
+| stop_loss_rule | text | 停損規則 |
+| take_profit_rule | text | 停利規則 |
+| preferred_indicators | jsonb | 偏好指標 |
+| prompt_overrides | text | 額外提示 |
+| is_default | boolean | 是否預設策略 |
+| version | integer | 策略版本 |
+| archived_at | timestamptz | 封存時間 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+### 13.3 StockAnalysisSession
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | session 主鍵 |
+| user_id | uuid | 所屬使用者 |
+| strategy_profile_id | uuid | 使用中的策略 |
+| symbol | varchar | 股票代號 |
+| market | varchar | TWSE / OTC |
+| timeframe | varchar | short_term / swing / long_term |
+| session_type | varchar | research / monitor / intraday |
+| title | varchar | session 標題 |
+| status | varchar | active / archived |
+| last_analyzed_at | timestamptz | 最後分析時間 |
+| summary_version | integer | 摘要版本 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+建議 unique key：
+
+- `(user_id, strategy_profile_id, symbol, market, timeframe, session_type, status)`
+
+### 13.4 SessionMessage
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 訊息主鍵 |
+| session_id | uuid | 所屬 session |
+| role | varchar | user / assistant / system |
+| content | text | 訊息內容 |
+| token_count | integer | 該訊息 token 粗估 |
+| source_type | varchar | manual / generated |
+| created_at | timestamptz | 建立時間 |
+
+### 13.5 SessionMemory
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| session_id | uuid | 對應 session |
+| summary_text | text | session 摘要 |
+| confirmed_facts | jsonb | 已確認事實 |
+| inferences | jsonb | 推論 |
+| hypotheses | jsonb | 假設 |
+| risk_notes | jsonb | 風險重點 |
+| watch_points | jsonb | 觀察點 |
+| entry_plan | jsonb | 進場規劃 |
+| latest_decision | varchar | 最新決策 |
+| updated_at | timestamptz | 更新時間 |
+
+### 13.6 AnalysisSnapshot
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 快照主鍵 |
+| session_id | uuid | 所屬 session |
+| strategy_profile_version | integer | 策略版本 |
+| prompt_template_version | integer | prompt 版本 |
+| market_context | jsonb | 大盤與產業 |
+| news_analysis | jsonb | 新聞分析 |
+| fundamental_analysis | jsonb | 基本面 |
+| technical_analysis | jsonb | 技術面 |
+| chip_analysis | jsonb | 籌碼面 |
+| scenario_analysis | jsonb | bull / base / bear |
+| decision | varchar | watch / add / reduce / avoid |
+| risk_score | numeric | 風險分數 |
+| data_freshness | jsonb | 資料更新時間 |
+| model_name | varchar | 使用模型 |
+| created_at | timestamptz | 建立時間 |
+
+### 13.7 ExternalResearchSource
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 來源主鍵 |
+| snapshot_id | uuid | 對應快照 |
+| source_type | varchar | news / filing / web / internal |
+| title | varchar | 標題 |
+| url | text | 來源連結 |
+| published_at | timestamptz | 原始發布時間 |
+| fetched_at | timestamptz | 系統抓取時間 |
+| summary | text | 來源摘要 |
+| is_verified | boolean | 是否通過驗證 |
+
+### 13.8 MarketDataCache
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 快取主鍵 |
+| symbol | varchar | 股票代號，可為空代表大盤 |
+| market | varchar | 市場別 |
+| data_type | varchar | price / chip / news / financial |
+| payload | jsonb | 正規化資料 |
+| effective_at | timestamptz | 資料生效時間 |
+| expires_at | timestamptz | 快取失效時間 |
+| created_at | timestamptz | 建立時間 |
+
+### 13.9 PortfolioHolding
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | uuid | 持股主鍵 |
+| user_id | uuid | 所屬使用者 |
+| symbol | varchar | 股票代號 |
+| market | varchar | 市場別 |
+| shares | numeric | 股數 |
+| average_cost | numeric | 持股成本 |
+| stop_loss_price | numeric | 停損價 |
+| take_profit_price | numeric | 停利價 |
+| holding_period | varchar | 投資週期 |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+---
+
+## 14. Backend Architecture 細化
+
+### 14.1 核心服務拆分
+
+建議至少拆成以下服務模組：
+
+1. `api-gateway`
+   提供前端 API、驗證使用者、做 rate limiting。
+
+2. `session-service`
+   建立與管理 stock session、讀寫 message、管理 session 狀態。
+
+3. `strategy-service`
+   管理使用者策略、版本控管、預設策略套用。
+
+4. `market-data-service`
+   抓取並正規化股價、籌碼、財報、新聞與大盤資料。
+
+5. `analysis-orchestrator`
+   組裝 prompt、決定何時聯網、呼叫 LLM、寫回快照與記憶。
+
+6. `memory-service`
+   負責 session summary、結構化記憶、摘要壓縮與更新策略。
+
+7. `notification-service`
+   根據風險事件與策略偏好發出提醒。
+
+### 14.2 建議系統拓樸
+
+- Frontend Web App
+- API Gateway
+- PostgreSQL
+- Redis
+- Object Storage
+- Background Worker Queue
+- Market Data Connectors
+- LLM Provider Adapter
+
+### 14.3 元件責任
+
+- `PostgreSQL`
+  存放交易策略、session、message、memory、snapshot、持股與使用者資料。
+
+- `Redis`
+  存放短期 session cache、prompt 組裝中間結果、rate limit 與任務鎖。
+
+- `Object Storage`
+  存放大型原始 research payload、新聞全文快照、匯出的報告。
+
+- `Background Worker Queue`
+  執行摘要更新、收盤後重分析、批次監控與通知。
+
+### 14.4 LLM Provider Adapter
+
+為避免未來綁死單一供應商，系統應抽象出 `LLM Provider Adapter`。
+
+Adapter 至少要統一：
+
+- `generateAnalysis()`
+- `summarizeSession()`
+- `extractStructuredFacts()`
+- `runWebResearch()`
+
+這樣未來可切換不同模型，而不需要重寫 orchestration 主流程。
+
+### 14.5 Prompt 組裝層
+
+Prompt 不應散落在 controller 或前端，而應集中在 `prompt-template-layer`。
+
+建議拆成：
+
+- `system_rulebook_prompt`
+- `strategy_profile_prompt`
+- `session_memory_prompt`
+- `data_bundle_prompt`
+- `user_query_prompt`
+
+並對每一種 prompt 模板做版本編號。
+
+### 14.6 非同步任務
+
+下列工作建議非同步執行：
+
+- 收盤後重跑持股分析
+- 每日盤前市場摘要
+- session 摘要壓縮
+- 新聞來源驗證
+- 法人異常掃描
+- 大量 watchlist 股票批次重分析
+
+### 14.7 可觀測性
+
+系統應記錄：
+
+- 每次 LLM 呼叫耗時
+- 每次 LLM 呼叫 token 使用量
+- 每個 session 的最近分析結果
+- 每個資料來源的更新時間
+- 失敗的外部抓取與模型呼叫
+
+建議至少有：
+
+- request log
+- model usage log
+- background job log
+- data freshness dashboard
+
+---
+
+## 15. 分析流程序列
+
+### 15.1 使用者提問個股時
+
+1. API Gateway 驗證使用者身份
+2. Session Service 找到或建立對應 `stock session`
+3. Strategy Service 載入策略設定與版本
+4. Market Data Service 拉取最新資料與資料新鮮度
+5. Memory Service 取回該股票的摘要記憶
+6. Analysis Orchestrator 組裝 prompt 並呼叫 LLM
+7. 回傳分析結果給前端
+8. Background Worker 非同步更新 summary 與 snapshot
+
+### 15.2 收盤後批次分析時
+
+1. 排程器撈出所有 active portfolio 與 watchlist
+2. 依股票建立批次任務
+3. 每個任務載入該使用者策略與股票 session
+4. 若資料已過期則先刷新 market data
+5. 產出新的 AnalysisSnapshot
+6. 若命中停損、異常風險或題材轉弱則送出通知
+
+### 15.3 Session 建立策略
+
+系統建立 session 時的邏輯建議為：
+
+- 有相同 `user + strategy + symbol + timeframe + session_type` 且 status = active，則重用
+- 否則建立新 session
+- 若策略版本切換幅度很大，可選擇建立新 session，避免舊脈絡混淆
