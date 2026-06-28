@@ -1,915 +1,203 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StockPilot AI</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#020617;color:#F8FAFC;font-family:'IBM Plex Sans',sans-serif;overflow:hidden}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
-::-webkit-scrollbar-track{background:transparent}
-
-.sidebar{width:220px;min-width:220px;height:100vh;background:#070F1E;border-right:1px solid #1E293B;display:flex;flex-direction:column}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;cursor:pointer;transition:all .15s;color:#64748B;font-size:13.5px;font-weight:500;margin:1px 8px}
-.nav-item:hover{background:#0F172A;color:#CBD5E1}
-.nav-item.active{background:#0F172A;color:#F8FAFC}
-.nav-item.active svg{color:#3B82F6}
-.nav-icon{width:16px;height:16px;flex-shrink:0}
-
-.screen{display:none;height:100vh;overflow-y:auto;padding:24px 28px}
-.screen.active{display:block}
-.screen.flex-screen{display:none;height:100vh}
-.screen.flex-screen.active{display:flex}
-
-.card{background:#0F172A;border:1px solid #1E293B;border-radius:12px;transition:border-color .15s}
-.card:hover{border-color:#334155}
-.card-inner{background:#0A1628;border-radius:8px}
-
-.badge-ai{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#581C87,#312E81);color:#E9D5FF;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
-.badge-up{color:#22C55E;background:#052e16;border:1px solid #14532d;font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px}
-.badge-dn{color:#EF4444;background:#1c0505;border:1px solid #450a0a;font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px}
-
-.mono{font-family:'IBM Plex Mono',monospace}
-.up{color:#22C55E}
-.dn{color:#EF4444}
-.muted{color:#64748B}
-.sub{color:#94A3B8}
-
-.chip{display:inline-flex;align-items:center;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid #1E293B;color:#94A3B8}
-.chip:hover,.chip.on{background:#1E293B;color:#F8FAFC;border-color:#3B82F6}
-
-.decision{border-radius:12px;padding:14px 16px;border:1px solid}
-.d-hold{background:#052e16;border-color:#14532d}
-.d-watch{background:#1c1507;border-color:#78350f}
-.d-add{background:#0c1a40;border-color:#1e3a8a}
-.d-reduce{background:#1a0c1a;border-color:#581c87}
-.d-risk{background:#1c0505;border-color:#450a0a}
-
-.chat-ai{background:#0F172A;border:1px solid #1E293B;border-radius:0 12px 12px 12px;padding:12px 16px;max-width:88%}
-.chat-user{background:#1E3A5F;border-radius:12px 0 12px 12px;padding:12px 16px;max-width:88%;margin-left:auto}
-
-.avatar{width:28px;height:28px;background:linear-gradient(135deg,#3B82F6,#A855F7);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-
-@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.fadein{animation:fadein .3s ease}
-
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.live{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:pulse 2s infinite;display:inline-block}
-
-input[type=text],textarea{background:#0A1628;border:1px solid #1E293B;color:#F8FAFC;border-radius:8px;padding:10px 14px;font-family:inherit;font-size:14px;outline:none;transition:border .15s;width:100%}
-input[type=text]:focus,textarea:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-
-.row-hover{padding:8px 12px;border-radius:8px;cursor:pointer;transition:background .15s}
-.row-hover:hover{background:#0A1628}
-
-.section-label{font-size:10px;font-weight:600;color:#475569;letter-spacing:.08em;text-transform:uppercase;padding:10px 22px 4px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockPilot AI｜AI Investment OS</title>
+  <meta name="description" content="StockPilot AI 是專為台股投資人設計的 AI 投資研究與決策平台。">
+  <style>
+    :root{
+      --bg:#07111f; --bg-2:#0b1729; --panel:#0f1b31; --line:rgba(148,163,184,.16);
+      --text:#ecf4ff; --muted:#90a4c7; --blue:#38bdf8; --green:#4ade80;
+      --amber:#fbbf24; --red:#fb7185; --violet:#a78bfa; --shadow:0 24px 60px rgba(2,8,23,.42);
+      --radius:18px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{
+      margin:0;color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;
+      background:
+        radial-gradient(1200px 700px at 10% 0%, rgba(56,189,248,.12), transparent 50%),
+        radial-gradient(800px 500px at 90% 10%, rgba(167,139,250,.10), transparent 45%),
+        linear-gradient(180deg, #050b16 0%, #091223 100%);
+    }
+    a{color:inherit}
+    .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 64px}
+    .topbar{
+      position:sticky;top:16px;z-index:50;display:flex;justify-content:space-between;align-items:center;gap:16px;
+      padding:14px 18px;border:1px solid var(--line);border-radius:999px;background:rgba(7,17,31,.78);backdrop-filter:blur(18px);box-shadow:var(--shadow)
+    }
+    .brand{font-weight:700;letter-spacing:.01em}.brand span{color:var(--blue)}
+    .nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .nav a{padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--muted);border:1px solid transparent}
+    .nav a:hover,.nav a:focus-visible{color:var(--text);border-color:var(--line);background:rgba(255,255,255,.04);outline:none}
+    .hero{display:grid;grid-template-columns:1.3fr .9fr;gap:18px;margin-top:20px}
+    .panel{background:linear-gradient(180deg, rgba(19,35,63,.95), rgba(11,23,41,.95));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero-main{padding:32px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid rgba(56,189,248,.22);border-radius:999px;background:rgba(56,189,248,.08);color:#bae6fd;font-size:13px}
+    h1{margin:16px 0 12px;font-size:clamp(34px,5vw,58px);line-height:1.05;letter-spacing:0}
+    .lead{max-width:720px;color:var(--muted);font-size:16px}
+    .badges{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}
+    .badge{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:#d8e6ff;background:rgba(255,255,255,.03);font-size:13px}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border-radius:14px;text-decoration:none;font-weight:600;border:1px solid transparent}
+    .btn.primary{background:linear-gradient(135deg,var(--blue),#8b5cf6);color:#fff}
+    .btn.secondary{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--text)}
+    .hero-side{padding:18px;display:grid;gap:12px}
+    .metric{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
+    .metric .label{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    .metric .value{margin-top:7px;font-size:26px;font-weight:700}
+    .metric .desc{margin-top:6px;color:var(--muted);font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}
+    .section{padding:22px}
+    .section h2{margin:0 0 6px;font-size:22px}.section p{margin:0;color:var(--muted)}
+    .span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-5{grid-column:span 5}.span-4{grid-column:span 4}
+    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+    .card{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
+    .card .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .card .v{margin-top:8px;font-size:20px;font-weight:700}
+    .bar-list{display:grid;gap:12px;margin-top:16px}
+    .bar-row{display:grid;grid-template-columns:170px 1fr 52px;gap:12px;align-items:center}
+    .bar-track{height:10px;border-radius:999px;background:#0b1426;border:1px solid var(--line);overflow:hidden}
+    .bar-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--green))}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+    .stack{display:grid;gap:12px;margin-top:14px}
+    .step{display:grid;grid-template-columns:42px 1fr;gap:12px}
+    .step .num{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(56,189,248,.12);color:#bae6fd;font-weight:700}
+    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px}
+    .pill.ok{color:#86efac;background:rgba(74,222,128,.08)} .pill.warn{color:#fde68a;background:rgba(251,191,36,.08)} .pill.bad{color:#fda4af;background:rgba(251,113,133,.08)}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:12px 8px;border-bottom:1px solid var(--line);text-align:left}
+    th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .links a{padding:10px 12px;border:1px solid var(--line);border-radius:14px;text-decoration:none;background:rgba(255,255,255,.03)}
+    .footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center}
+    @media (max-width: 960px){
+      .hero,.two-col{grid-template-columns:1fr}
+      .cards{grid-template-columns:repeat(2,1fr)}
+      .span-8,.span-7,.span-5,.span-4{grid-column:span 12}
+      .bar-row{grid-template-columns:1fr;gap:6px}
+      .topbar{border-radius:20px;align-items:flex-start;flex-direction:column}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:14px 12px 48px}.hero-main{padding:24px}.cards{grid-template-columns:1fr} h1{font-size:34px}
+    }
+  </style>
 </head>
-<body style="display:flex">
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">StockPilot <span>AI</span></div>
+      <nav class="nav" aria-label="主導覽">
+        <a href="#dashboard">Dashboard</a><a href="#research">Research</a><a href="#portfolio">Portfolio</a><a href="#chat">Chat</a><a href="#docs">Docs</a>
+      </nav>
+    </header>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div style="padding:18px 14px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1E293B">
-    <div style="width:32px;height:32px;background:linear-gradient(135deg,#3B82F6,#A855F7);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </div>
-    <div>
-      <div style="font-size:13px;font-weight:700;color:#F8FAFC">StockPilot</div>
-      <div style="font-size:10px;color:#64748B;font-weight:500">AI Investment OS</div>
-    </div>
-  </div>
-  <nav style="flex:1;padding:10px 0;overflow-y:auto">
-    <div class="section-label">主要功能</div>
-    <div class="nav-item active" onclick="go('dashboard',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
-    </div>
-    <div class="nav-item" onclick="go('research',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Research
-    </div>
-    <div class="nav-item" onclick="go('radar',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-      Market Radar
-    </div>
-    <div class="nav-item" onclick="go('watchlist',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      Watchlist
-    </div>
-    <div class="nav-item" onclick="go('portfolio',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Portfolio
-    </div>
-    <div class="nav-item" onclick="go('chat',this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      AI Chat
-    </div>
-  </nav>
-  <div style="padding:12px 14px;border-top:1px solid #1E293B;display:flex;align-items:center;gap:10px">
-    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">I</div>
-    <div>
-      <div style="font-size:12px;font-weight:600;color:#E2E8F0">Ivan Tsai</div>
-      <div style="font-size:10px;color:#64748B">Pro Plan</div>
-    </div>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main style="flex:1;overflow:hidden">
-
-<!-- ========== DASHBOARD ========== -->
-<div class="screen active fadein" id="screen-dashboard">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <div>
-      <div style="font-size:20px;font-weight:700">Dashboard</div>
-      <div style="font-size:13px;color:#64748B;margin-top:2px;display:flex;align-items:center;gap:6px">
-        <span class="live"></span> 2025年6月14日&nbsp;·&nbsp;台股收盤
+    <section class="hero">
+      <div class="panel hero-main">
+        <div class="eyebrow">AI Investment OS · 台股分析與決策系統</div>
+        <h1>不是股票資訊網站。<br>是可查證、可解釋、可重複使用的分析作業系統。</h1>
+        <p class="lead">StockPilot AI 以「證據 → 推論 → 策略 → 風險」為核心，協助使用者從大盤、產業、消息、基本面、技術面到籌碼面，形成一致且可執行的投資決策。</p>
+        <div class="badges">
+          <span class="badge">Professional</span><span class="badge">Clean</span><span class="badge">Dark Mode First</span><span class="badge">High Information Density</span><span class="badge">Decision Driven</span>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="#research">查看 Research Workspace</a>
+          <a class="btn secondary" href="#portfolio">查看 Portfolio Center</a>
+        </div>
       </div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <div style="background:#0F172A;border:1px solid #1E293B;border-radius:8px;padding:6px 14px;font-size:12px;color:#94A3B8;cursor:pointer">通知</div>
-      <div style="background:linear-gradient(135deg,#1D4ED8,#7C3AED);border-radius:8px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer">AI 盤前摘要</div>
-    </div>
-  </div>
+      <aside class="panel hero-side">
+        <div class="metric"><div class="label">Market Status</div><div class="value">Neutral</div><div class="desc">大盤偏震盪，先看確認，不急著追價。</div></div>
+        <div class="metric"><div class="label">Portfolio Risk</div><div class="value">Medium</div><div class="desc">以低成本、分批布局、停損停利為原則。</div></div>
+        <div class="metric"><div class="label">Today’s Action</div><div class="value">Watch Closely</div><div class="desc">先看拉回、守住與假突破，再決定是否動作。</div></div>
+      </aside>
+    </section>
 
-  <!-- Stats Row -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">加權指數</div>
-      <div class="mono" style="font-size:20px;font-weight:700">22,847</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-        <span class="badge-up">▲ 143.5</span>
-        <span class="up" style="font-size:11px">+0.63%</span>
-      </div>
-    </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">成交量</div>
-      <div class="mono" style="font-size:20px;font-weight:700">3,842億</div>
-      <div style="font-size:11px;color:#F59E0B;margin-top:4px">近均量 ▲</div>
-    </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">漲跌比</div>
-      <div class="mono" style="font-size:20px;font-weight:700">
-        <span class="up">512</span><span style="color:#64748B;font-size:14px"> / </span><span class="dn">298</span>
-      </div>
-      <div style="display:flex;gap:2px;margin-top:6px">
-        <div style="flex:512;background:#22C55E;height:4px;border-radius:2px 0 0 2px"></div>
-        <div style="flex:298;background:#EF4444;height:4px;border-radius:0 2px 2px 0"></div>
-      </div>
-    </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">外資買賣超</div>
-      <div class="mono up" style="font-size:20px;font-weight:700">+128億</div>
-      <div style="font-size:11px;color:#64748B;margin-top:4px">連續 3 日買超</div>
-    </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">AI 市場情緒</div>
-      <div class="mono" style="font-size:20px;font-weight:700;color:#06B6D4">偏多</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-        <span class="badge-ai">AI</span>
-        <span style="font-size:11px;color:#64748B">信心 74%</span>
-      </div>
-    </div>
-  </div>
+    <section id="dashboard" class="grid">
+      <article class="panel section span-8">
+        <h2>Dashboard</h2>
+        <p>30 秒掌握市場，首頁先給方向與風險，不把股價當唯一主角。</p>
+        <div class="cards">
+          <div class="card"><div class="k">Market Sentiment</div><div class="v">52 / 100</div></div>
+          <div class="card"><div class="k">Hot Themes</div><div class="v">AI · 記憶體</div></div>
+          <div class="card"><div class="k">Money Flow</div><div class="v">+8.3B</div></div>
+          <div class="card"><div class="k">Risk Alerts</div><div class="v">3</div></div>
+        </div>
+        <div class="bar-list" aria-label="市場題材熱度">
+          <div class="bar-row"><div>AI Infrastructure</div><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><div>92</div></div>
+          <div class="bar-row"><div>Power & Energy</div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div><div>74</div></div>
+          <div class="bar-row"><div>Memory</div><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div><div>63</div></div>
+        </div>
+      </article>
+      <article class="panel section span-4">
+        <h2>Today’s Watch</h2>
+        <table>
+          <thead><tr><th>Stock</th><th>AI</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>2308 台達電</td><td>Hold</td><td><span class="pill ok">Low</span></td></tr>
+            <tr><td>1519 華城</td><td>Watch</td><td><span class="pill warn">Medium</span></td></tr>
+            <tr><td>2408 南亞科</td><td>Review</td><td><span class="pill bad">High</span></td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
 
-  <div style="display:grid;grid-template-columns:1fr 330px;gap:16px">
-    <div style="display:flex;flex-direction:column;gap:16px">
-
-      <!-- 熱門題材 -->
-      <div class="card" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:14px;font-weight:600">熱門題材</span>
-            <span class="badge-ai">AI 分析</span>
+    <section id="research" class="grid">
+      <article class="panel section span-12">
+        <h2>Research Workspace</h2>
+        <p>左側專案、中間 AI 對話、右側自動整理 Insights。這是整個產品的核心工作流。</p>
+        <div class="two-col">
+          <div class="card">
+            <div class="pill">Research Projects</div>
+            <div class="stack">
+              <div class="step"><div class="num">1</div><div><strong>台股每日盤勢</strong><p>每日盤前與盤後摘要，累積研究紀錄。</p></div></div>
+              <div class="step"><div class="num">2</div><div><strong>AI Infrastructure</strong><p>題材、供應鏈、財報與籌碼交叉分析。</p></div></div>
+              <div class="step"><div class="num">3</div><div><strong>ETF Strategy</strong><p>資產配置、風險與再平衡決策。</p></div></div>
+            </div>
           </div>
-          <span style="font-size:12px;color:#3B82F6;cursor:pointer">查看全部</span>
-        </div>
-        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px" id="themes-row"></div>
-      </div>
-
-      <!-- Charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="card" style="padding:16px 18px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px">加權指數走勢</div>
-          <canvas id="indexChart" height="90"></canvas>
-        </div>
-        <div class="card" style="padding:16px 18px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px">外資資金流向（億）</div>
-          <canvas id="flowChart" height="90"></canvas>
-        </div>
-      </div>
-
-      <!-- Watch Stocks -->
-      <div class="card" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <span style="font-size:14px;font-weight:600">今日觀察股票</span>
-          <span class="badge-ai">AI 精選</span>
-        </div>
-        <div style="display:grid;grid-template-columns:72px 1fr 80px 68px 80px 110px;gap:8px;padding:5px 12px;font-size:11px;color:#64748B;font-weight:500;border-bottom:1px solid #1E293B;margin-bottom:4px">
-          <span>代號</span><span>名稱</span><span style="text-align:right">現價</span><span style="text-align:right">漲跌</span><span style="text-align:right">成交量</span><span>AI 評分</span>
-        </div>
-        <div id="watch-list"></div>
-      </div>
-    </div>
-
-    <!-- Right -->
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <div class="card" style="padding:16px 18px;border-color:#1E3A5F;background:linear-gradient(160deg,#0F172A,#0C1A30)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <span class="badge-ai">AI</span>
-          <span style="font-size:13px;font-weight:600">今日市場摘要</span>
-        </div>
-        <p style="font-size:13px;color:#CBD5E1;line-height:1.7;margin-bottom:10px">台股今日在 AI 伺服器與重電題材帶動下，加權指數收漲 0.63%，成交量突破 3,800 億，顯示資金積極進場。</p>
-        <p style="font-size:13px;color:#CBD5E1;line-height:1.7;margin-bottom:12px">外資連續第三日買超，法人籌碼偏向多方。重點觀察 CoWoS 供應鏈個股，訂單能見度持續延伸至 2026 年。</p>
-        <div style="border-top:1px solid #1E293B;padding-top:10px">
-          <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">關注風險</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px">
-            <span style="background:#1C0505;color:#FCA5A5;border:1px solid #450A0A;font-size:11px;padding:2px 7px;border-radius:4px">Fed 會議紀錄</span>
-            <span style="background:#1C0505;color:#FCA5A5;border:1px solid #450A0A;font-size:11px;padding:2px 7px;border-radius:4px">美中科技禁令</span>
-            <span style="background:#1C0505;color:#FCA5A5;border:1px solid #450A0A;font-size:11px;padding:2px 7px;border-radius:4px">台灣選舉</span>
+          <div class="card">
+            <div class="pill">Research Insights</div>
+            <div class="stack">
+              <div class="step"><div class="num">A</div><div><strong>產業結論</strong><p>目前屬於題材輪動期，資金快速切換。</p></div></div>
+              <div class="step"><div class="num">B</div><div><strong>候選股票</strong><p>由研究主題反推出可觀察標的。</p></div></div>
+              <div class="step"><div class="num">C</div><div><strong>風險清單</strong><p>避免過熱、追價與資料不足硬下結論。</p></div></div>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
+    </section>
 
-      <div class="card" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <span style="font-size:13px;font-weight:600">我的持股摘要</span>
-          <span style="font-size:12px;color:#3B82F6;cursor:pointer">查看全部</span>
+    <section id="portfolio" class="grid">
+      <article class="panel section span-7">
+        <h2>Portfolio Command Center</h2>
+        <p>產品靈魂：回答今天該做什麼，而不是只給一個價格。</p>
+        <div class="cards" style="grid-template-columns:repeat(2,1fr)">
+          <div class="card"><div class="k">Do Nothing</div><div class="v">12</div></div>
+          <div class="card"><div class="k">Watch Closely</div><div class="v">5</div></div>
+          <div class="card"><div class="k">Consider Add</div><div class="v">3</div></div>
+          <div class="card"><div class="k">High Risk</div><div class="v">1</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div class="card-inner" style="padding:10px 12px">
-            <div style="font-size:10px;color:#64748B;margin-bottom:4px">總資產</div>
-            <div class="mono" style="font-size:16px;font-weight:700">$2,847,230</div>
-          </div>
-          <div class="card-inner" style="padding:10px 12px">
-            <div style="font-size:10px;color:#64748B;margin-bottom:4px">未實現損益</div>
-            <div class="mono up" style="font-size:16px;font-weight:700">+$248,650</div>
-          </div>
-          <div class="card-inner" style="padding:10px 12px">
-            <div style="font-size:10px;color:#64748B;margin-bottom:4px">持股數</div>
-            <div class="mono" style="font-size:16px;font-weight:700">8 檔</div>
-          </div>
-          <div class="card-inner" style="padding:10px 12px">
-            <div style="font-size:10px;color:#64748B;margin-bottom:4px">組合風險</div>
-            <div class="mono" style="font-size:16px;font-weight:700;color:#F59E0B">中等</div>
-          </div>
+      </article>
+      <article id="chat" class="panel section span-5">
+        <h2>Intraday AI Chat</h2>
+        <p>盤中直接問：現在可以進嗎、該賣嗎、爆量代表什麼。</p>
+        <div class="stack">
+          <div class="step"><div class="num">Q</div><div><strong>2308 台達電現在可以進嗎？</strong><p>系統會回覆支撐、壓力、風險與情境分析。</p></div></div>
+          <div class="step"><div class="num">A</div><div><strong>可觀察 / 分批布局 / 不建議追價</strong><p>結論會隨資料狀態與風控規則動態更新。</p></div></div>
         </div>
-        <div style="background:#052e16;border:1px solid #14532d;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          <span style="font-size:12px;color:#86EFAC;font-weight:500">持股健康，今日無需動作</span>
+      </article>
+    </section>
+
+    <section id="docs" class="grid">
+      <article class="panel section span-12">
+        <h2>Documents</h2>
+        <p>這個 repo 已同步放入 SDD 規格與分析合約，方便直接對外分享。</p>
+        <div class="links">
+          <a href="./README.md">README</a><a href="./docs/SDD.md">SDD</a><a href="./docs/analysis-rulebook.md">Analysis Rulebook</a><a href="./docs/api-contract.md">API Contract</a><a href="./docs/risk-control.md">Risk Control</a><a href="./docs/roadmap.md">Roadmap</a>
         </div>
-      </div>
+      </article>
+    </section>
 
-      <div class="card" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span style="font-size:13px;font-weight:600">今日風險提醒</span>
-        </div>
-        <div id="risk-list"></div>
-      </div>
-    </div>
+    <div class="footer">StockPilot AI · AI Investment OS · GitHub Pages</div>
   </div>
-</div>
-
-<!-- ========== RESEARCH ========== -->
-<div class="screen flex-screen fadein" id="screen-research">
-  <!-- Left Projects -->
-  <div style="width:220px;min-width:220px;background:#070F1E;border-right:1px solid #1E293B;display:flex;flex-direction:column">
-    <div style="padding:16px 14px 10px;border-bottom:1px solid #1E293B">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">研究專案</div>
-      <button style="display:flex;align-items:center;gap:6px;background:#1E293B;border:none;border-radius:6px;padding:7px 10px;color:#94A3B8;font-size:12px;cursor:pointer;width:100%;font-family:inherit">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        新增研究
-      </button>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:8px 6px" id="project-list"></div>
-  </div>
-
-  <!-- Center Chat -->
-  <div style="flex:1;display:flex;flex-direction:column;border-right:1px solid #1E293B">
-    <div style="padding:14px 20px;border-bottom:1px solid #1E293B;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:13px;font-weight:700">AI Infrastructure</div>
-        <div style="font-size:11px;color:#64748B;margin-top:1px">台股 AI 伺服器供應鏈研究</div>
-      </div>
-      <span class="badge-ai">AI</span>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:20px" id="research-chat-area"></div>
-    <div style="padding:14px 20px;border-top:1px solid #1E293B">
-      <div style="display:flex;gap:8px">
-        <input type="text" id="research-input" placeholder="問 AI 任何投資問題... (e.g. 世芯現在可以買嗎？)" onkeydown="if(event.key==='Enter')sendResearch()">
-        <button onclick="sendResearch()" style="background:linear-gradient(135deg,#1D4ED8,#7C3AED);border:none;border-radius:8px;padding:0 18px;color:white;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap">送出</button>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <span class="chip" onclick="document.getElementById('research-input').value='CoWoS 供應鏈現況'">CoWoS 供應鏈現況</span>
-        <span class="chip" onclick="document.getElementById('research-input').value='台積電 2025 展望'">台積電 2025 展望</span>
-        <span class="chip" onclick="document.getElementById('research-input').value='AI 伺服器競爭格局'">AI 伺服器競爭格局</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right Insights -->
-  <div style="width:260px;min-width:260px;background:#070F1E;display:flex;flex-direction:column">
-    <div style="padding:14px 14px 10px;border-bottom:1px solid #1E293B">
-      <div style="font-size:13px;font-weight:700">Research Insights</div>
-      <div style="font-size:11px;color:#64748B;margin-top:2px">AI 自動整理</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:12px" id="insights-area"></div>
-  </div>
-</div>
-
-<!-- ========== MARKET RADAR ========== -->
-<div class="screen fadein" id="screen-radar">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <div>
-      <div style="font-size:20px;font-weight:700">Market Radar</div>
-      <div style="font-size:13px;color:#64748B;margin-top:2px">資金流向 · 題材輪動 · 法人動態</div>
-    </div>
-    <span class="badge-ai">AI 分析</span>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div class="card" style="padding:16px 18px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:14px">主流題材排行</div>
-      <div id="theme-rank"></div>
-    </div>
-    <div class="card" style="padding:16px 18px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">法人動態</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <span class="chip on" id="chip-buy" onclick="setChip('buy')">買超排行</span>
-        <span class="chip" id="chip-sell" onclick="setChip('sell')">賣超排行</span>
-      </div>
-      <div id="institution-table"></div>
-    </div>
-  </div>
-
-  <div class="card" style="padding:16px 18px;border-color:#1E3A5F;background:linear-gradient(160deg,#0F172A,#0C1A30)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <span class="badge-ai">AI 題材輪動分析</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-      <div style="background:#052e16;border-radius:10px;padding:14px">
-        <div style="font-size:11px;font-weight:700;color:#22C55E;margin-bottom:6px">強勢題材</div>
-        <p style="font-size:12px;color:#CBD5E1;line-height:1.65;margin:0">軍工國防題材本週異軍突起，外資大幅買超，訂單能見度至 2026 年。建議優先研究 2597 航翔、2645 世成。</p>
-      </div>
-      <div style="background:#1c1507;border-radius:10px;padding:14px">
-        <div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:6px">留意輪動</div>
-        <p style="font-size:12px;color:#CBD5E1;line-height:1.65;margin:0">AI 伺服器近期漲幅已大，部分籌碼開始鬆動。可能輪動至「軍工」與「重電」次題材。</p>
-      </div>
-      <div style="background:#1c0505;border-radius:10px;padding:14px">
-        <div style="font-size:11px;font-weight:700;color:#EF4444;margin-bottom:6px">風險警示</div>
-        <p style="font-size:12px;color:#CBD5E1;line-height:1.65;margin:0">記憶體題材面臨三星降價競爭，南亞科、旺宏短期可能有賣壓，建議暫緩加碼。</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== WATCHLIST ========== -->
-<div class="screen fadein" id="screen-watchlist">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-    <div>
-      <div style="font-size:20px;font-weight:700">Watchlist</div>
-      <div style="font-size:13px;color:#64748B;margin-top:2px">觀察股票池 · 12 檔</div>
-    </div>
-    <button style="display:flex;align-items:center;gap:6px;background:#0F172A;border:1px solid #1E293B;border-radius:8px;padding:6px 14px;color:#94A3B8;font-size:12px;cursor:pointer;font-family:inherit">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      新增股票
-    </button>
-  </div>
-  <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px" id="wl-tabs"></div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px" id="wl-grid"></div>
-</div>
-
-<!-- ========== PORTFOLIO ========== -->
-<div class="screen fadein" id="screen-portfolio">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <div>
-      <div style="font-size:20px;font-weight:700">Portfolio Command Center</div>
-      <div style="font-size:13px;color:#64748B;margin-top:2px">今天該做什麼？</div>
-    </div>
-    <span class="badge-ai">AI 每日分析</span>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px">
-    <div class="decision d-hold" style="cursor:pointer">
-      <div style="font-size:9px;font-weight:700;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">DO NOTHING</div>
-      <div class="mono" style="font-size:22px;font-weight:700;color:#22C55E">4 <span style="font-size:13px">檔</span></div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:4px">持股健康，無需動作</div>
-    </div>
-    <div class="decision d-watch" style="cursor:pointer">
-      <div style="font-size:9px;font-weight:700;color:#F59E0B;letter-spacing:.1em;margin-bottom:6px">WATCH CLOSELY</div>
-      <div class="mono" style="font-size:22px;font-weight:700;color:#F59E0B">2 <span style="font-size:13px">檔</span></div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:4px">需要密切注意</div>
-    </div>
-    <div class="decision d-add" style="cursor:pointer">
-      <div style="font-size:9px;font-weight:700;color:#3B82F6;letter-spacing:.1em;margin-bottom:6px">CONSIDER ADD</div>
-      <div class="mono" style="font-size:22px;font-weight:700;color:#3B82F6">1 <span style="font-size:13px">檔</span></div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:4px">考慮加碼機會</div>
-    </div>
-    <div class="decision d-reduce" style="cursor:pointer">
-      <div style="font-size:9px;font-weight:700;color:#A855F7;letter-spacing:.1em;margin-bottom:6px">CONSIDER REDUCE</div>
-      <div class="mono" style="font-size:22px;font-weight:700;color:#A855F7">1 <span style="font-size:13px">檔</span></div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:4px">考慮適度減碼</div>
-    </div>
-    <div class="decision d-risk" style="cursor:pointer">
-      <div style="font-size:9px;font-weight:700;color:#EF4444;letter-spacing:.1em;margin-bottom:6px">HIGH RISK</div>
-      <div class="mono" style="font-size:22px;font-weight:700;color:#EF4444">1 <span style="font-size:13px">檔</span></div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:4px">高風險需立即處理</div>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
-    <div class="card" style="padding:16px 18px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:12px">持股清單</div>
-      <div style="display:grid;grid-template-columns:72px 1fr 80px 80px 70px 70px 110px;gap:8px;padding:5px 12px;font-size:11px;color:#64748B;font-weight:500;border-bottom:1px solid #1E293B;margin-bottom:4px">
-        <span>代號</span><span>名稱</span><span style="text-align:right">現價</span><span style="text-align:right">成本</span><span style="text-align:right">損益%</span><span style="text-align:right">風險</span><span>AI 決策</span>
-      </div>
-      <div id="holdings-list"></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="card" style="padding:16px 18px">
-        <div style="font-size:12px;font-weight:600;margin-bottom:12px">Portfolio Summary</div>
-        <div id="portfolio-stats"></div>
-      </div>
-      <div class="card" style="padding:14px 16px">
-        <canvas id="allocChart" height="140"></canvas>
-      </div>
-      <div style="background:#1c0505;border:1px solid #450a0a;border-radius:10px;padding:12px 14px">
-        <div style="font-size:11px;font-weight:700;color:#EF4444;margin-bottom:6px">HIGH RISK · 立即注意</div>
-        <div style="font-size:12px;color:#FCA5A5;line-height:1.55">2408 南亞科跌破成本 9.1%，接近停損區間，建議評估是否執行停損。</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== AI CHAT ========== -->
-<div class="screen flex-screen fadein" id="screen-chat">
-  <div style="flex:1;display:flex;flex-direction:column">
-    <div style="padding:14px 24px;border-bottom:1px solid #1E293B;display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-        <div>
-          <div style="font-size:13px;font-weight:700">Intraday AI Chat</div>
-          <div style="font-size:11px;color:#64748B;display:flex;align-items:center;gap:4px"><span class="live"></span>即時盤中助理</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:#64748B">2025/06/14 盤後</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:24px" id="chat-messages"></div>
-    <div style="padding:16px 24px;border-top:1px solid #1E293B">
-      <div style="display:flex;gap:8px">
-        <input type="text" id="chat-input" placeholder="輸入股票代號或問題... (e.g. 1519 華城該賣嗎？)" onkeydown="if(event.key==='Enter')sendChat()">
-        <button onclick="sendChat()" style="background:linear-gradient(135deg,#1D4ED8,#7C3AED);border:none;border-radius:8px;padding:0 20px;color:white;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>送出
-        </button>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <span class="chip" onclick="document.getElementById('chat-input').value='1519 華城該賣嗎？'">1519 華城該賣嗎？</span>
-        <span class="chip" onclick="document.getElementById('chat-input').value='2408 南亞科爆量代表什麼？'">2408 南亞科爆量代表什麼？</span>
-        <span class="chip" onclick="document.getElementById('chat-input').value='軍工股現在還能買嗎？'">軍工股現在還能買嗎？</span>
-        <span class="chip" onclick="document.getElementById('chat-input').value='2330 台積電下週展望'">2330 台積電下週展望</span>
-      </div>
-    </div>
-  </div>
-  <div style="width:260px;min-width:260px;background:#070F1E;border-left:1px solid #1E293B;display:flex;flex-direction:column">
-    <div style="padding:14px;border-bottom:1px solid #1E293B">
-      <div style="font-size:12px;font-weight:600">目前分析中</div>
-      <div style="font-size:11px;color:#64748B">2308 台達電</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:12px" id="chat-context"></div>
-  </div>
-</div>
-
-</main>
-
-<script>
-// ─── Data ───────────────────────────────────────────────
-const THEMES = [
-  {name:'AI伺服器',chg:'+4.2%',color:'#3B82F6'},
-  {name:'重電',chg:'+3.8%',color:'#F97316'},
-  {name:'軍工',chg:'+6.1%',color:'#EF4444'},
-  {name:'記憶體',chg:'+2.9%',color:'#A855F7'},
-  {name:'CoWoS',chg:'+5.4%',color:'#06B6D4'},
-  {name:'電網',chg:'+2.1%',color:'#22C55E'},
-  {name:'國防',chg:'+7.8%',color:'#F59E0B'},
-  {name:'散熱',chg:'+1.6%',color:'#94A3B8'},
-];
-const WATCH_STOCKS = [
-  {code:'2330',name:'台積電',price:'1,045',chg:'+1.2%',vol:'85,234',score:96},
-  {code:'2317',name:'鴻海',price:'198.5',chg:'+2.3%',vol:'42,318',score:88},
-  {code:'3661',name:'世芯-KY',price:'3,420',chg:'+5.4%',vol:'12,045',score:91},
-  {code:'6669',name:'緯穎',price:'2,180',chg:'+3.8%',vol:'8,234',score:85},
-  {code:'2308',name:'台達電',price:'482',chg:'+0.8%',vol:'21,456',score:79},
-];
-const RISKS = [
-  {code:'2303',name:'聯電',desc:'接近停損價 45.5',level:'med'},
-  {code:'3034',name:'聯詠',desc:'法人連續賣超 3 日',level:'med'},
-  {code:'NVDA',name:'美股盤後財報',desc:'可能影響台灣 AI 鏈',level:'high'},
-];
-const PROJECTS = [
-  {title:'AI Infrastructure',status:'活躍',stocks:'2330, 3661, 6669',active:true},
-  {title:'Power & Energy',status:'活躍',stocks:'1519, 1504, 2727',active:false},
-  {title:'Military',status:'新建',stocks:'2597, 2645',active:false},
-  {title:'Memory',status:'活躍',stocks:'3474, 2408, 4256',active:false},
-  {title:'ETF Strategy',status:'待更新',stocks:'00878, 0050',active:false},
-];
-const THEME_RANK = [
-  {name:'軍工國防',color:'#EF4444',score:92,chg:'+8.4%'},
-  {name:'AI 伺服器',color:'#3B82F6',score:88,chg:'+4.2%'},
-  {name:'重電設備',color:'#F97316',score:84,chg:'+3.8%'},
-  {name:'CoWoS',color:'#06B6D4',score:79,chg:'+5.4%'},
-  {name:'記憶體',color:'#A855F7',score:71,chg:'+2.9%'},
-  {name:'散熱模組',color:'#22C55E',score:65,chg:'+2.1%'},
-  {name:'網通設備',color:'#64748B',score:52,chg:'+0.8%'},
-];
-const BUY_DATA = [
-  {code:'2330',name:'台積電',amt:'+42.8億',chg:'+1.2%'},
-  {code:'1519',name:'華城',amt:'+18.4億',chg:'+4.3%'},
-  {code:'2317',name:'鴻海',amt:'+15.6億',chg:'+2.3%'},
-  {code:'6669',name:'緯穎',amt:'+12.1億',chg:'+3.8%'},
-  {code:'3661',name:'世芯',amt:'+9.8億',chg:'+5.4%'},
-  {code:'2308',name:'台達電',amt:'+8.3億',chg:'+0.8%'},
-];
-const SELL_DATA = [
-  {code:'3034',name:'聯詠',amt:'-12.3億',chg:'-2.1%'},
-  {code:'2303',name:'聯電',amt:'-9.8億',chg:'-1.5%'},
-  {code:'2474',name:'可成',amt:'-7.2億',chg:'-0.8%'},
-  {code:'2327',name:'國巨',amt:'-6.5億',chg:'-1.2%'},
-];
-const WL_STOCKS = [
-  {code:'2330',name:'台積電',price:'1,045',chg:'+1.2%',tag:'AI',risk:'低',score:96,reason:'CoWoS 核心受益者'},
-  {code:'1519',name:'華城',price:'1,280',chg:'+4.3%',tag:'重電',risk:'低',score:88,reason:'重電族群龍頭'},
-  {code:'3661',name:'世芯-KY',price:'3,420',chg:'+5.4%',tag:'AI',risk:'低',score:91,reason:'ASIC 設計唯一標的'},
-  {code:'6669',name:'緯穎',price:'2,180',chg:'+3.8%',tag:'AI',risk:'低',score:85,reason:'AI 伺服器組裝龍頭'},
-  {code:'2597',name:'航翔',price:'248',chg:'+7.8%',tag:'軍工',risk:'中',score:82,reason:'國防預算大幅提升'},
-  {code:'3474',name:'華亞科',price:'68.5',chg:'+2.9%',tag:'記憶體',risk:'中',score:74,reason:'HBM 受益概念股'},
-  {code:'00878',name:'國泰永續高股息',price:'21.3',chg:'+0.4%',tag:'ETF',risk:'低',score:70,reason:'穩定配息 ETF'},
-  {code:'2408',name:'南亞科',price:'68.2',chg:'+1.8%',tag:'記憶體',risk:'中',score:65,reason:'DRAM 景氣復甦'},
-  {code:'2308',name:'台達電',price:'482',chg:'+0.8%',tag:'AI',risk:'低',score:79,reason:'AI 散熱電源龍頭'},
-  {code:'2317',name:'鴻海',price:'198.5',chg:'+2.3%',tag:'AI',risk:'低',score:83,reason:'AI 伺服器組裝'},
-  {code:'3017',name:'奇鋐',price:'422',chg:'+3.1%',tag:'AI',risk:'低',score:77,reason:'散熱模組龍頭'},
-  {code:'2727',name:'王品',price:'285',chg:'-0.3%',tag:'其他',risk:'中',score:51,reason:'餐飲龍頭，波段操作'},
-];
-const HOLDINGS = [
-  {code:'2330',name:'台積電',price:'1,045',cost:'895',pnl:'+16.8%',risk:'低',dec:'DO NOTHING',dc:'#22C55E'},
-  {code:'1519',name:'華城',price:'1,280',cost:'1,050',pnl:'+21.9%',risk:'低',dec:'DO NOTHING',dc:'#22C55E'},
-  {code:'3661',name:'世芯-KY',price:'3,420',cost:'2,980',pnl:'+14.8%',risk:'低',dec:'WATCH CLOSELY',dc:'#F59E0B'},
-  {code:'2317',name:'鴻海',price:'198.5',cost:'182',pnl:'+9.1%',risk:'低',dec:'DO NOTHING',dc:'#22C55E'},
-  {code:'2308',name:'台達電',price:'482',cost:'510',pnl:'-5.5%',risk:'中',dec:'CONSIDER ADD',dc:'#3B82F6'},
-  {code:'3474',name:'華亞科',price:'68.5',cost:'82',pnl:'-16.5%',risk:'中',dec:'CONSIDER REDUCE',dc:'#A855F7'},
-  {code:'2408',name:'南亞科',price:'68.2',cost:'75',pnl:'-9.1%',risk:'高',dec:'HIGH RISK',dc:'#EF4444'},
-  {code:'2597',name:'航翔',price:'248',cost:'195',pnl:'+27.2%',risk:'低',dec:'DO NOTHING',dc:'#22C55E'},
-];
-const P_STATS = [
-  {label:'總資產',val:'$2,847,230',color:'#F8FAFC'},
-  {label:'未實現損益',val:'+$248,650 (+9.6%)',color:'#22C55E'},
-  {label:'已實現損益',val:'+$83,200',color:'#22C55E'},
-  {label:'持股數',val:'8 檔',color:'#F8FAFC'},
-  {label:'勝率',val:'75%',color:'#22C55E'},
-  {label:'組合風險分數',val:'42 / 100',color:'#F59E0B'},
-];
-const RESEARCH_MSGS = [
-  {role:'ai',text:'根據最新資料，AI Infrastructure 題材持續強勢。供應鏈核心：<br><br>· CoWoS 封裝 — 台積電 (2330)，高優先<br>· AI 伺服器組裝 — 鴻海 (2317)、廣達 (2382)，高優先<br>· 散熱模組 — 台達電 (2308)、奇鋐 (3017)，中優先<br>· PCB 基板 — 南電 (8046)、欣興 (3037)，中優先<br><br>您希望深入分析哪個環節？'},
-  {role:'user',text:'世芯-KY 3661 的競爭優勢是什麼？值得在現在的價位佈局嗎？'},
-  {role:'ai',text:'<strong style="color:#F8FAFC">世芯-KY (3661) 分析</strong><br><br><strong style="color:#60A5FA">競爭優勢：</strong>台灣唯一 ASIC 設計服務廠，客戶為 Google、Amazon、Microsoft 等超大型雲端業者，進入門檻極高。<br><br><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0"><div style="background:#052e16;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#86EFAC;margin-bottom:4px">Bull</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">CoWoS 訂單延伸，目標價 4,200</div></div><div style="background:#1c1507;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#FCD34D;margin-bottom:4px">Base</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">震盪整理，注意 3,200 支撐</div></div><div style="background:#1c0505;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#FCA5A5;margin-bottom:4px">Bear</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">AI 資本支出縮減，下方 2,800</div></div></div><div style="background:#0c1a40;border:1px solid #1e3a8a;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px"><span class="badge-ai">AI 結論</span><span style="font-size:12px;color:#E2E8F0">可分批佈局，建議分 3 批，首批現價，等待 3,200 加碼</span></div>'},
-];
-const INSIGHTS_DATA = {
-  conclusions:['台灣是全球 AI 基礎設施不可替代的供應鏈核心','CoWoS 產能瓶頸至少延續到 2026 Q1','重電設備受惠 AI 資料中心用電需求激增'],
-  stocks:[{code:'3661',name:'世芯-KY',stars:'★★★★★'},{code:'6669',name:'緯穎',stars:'★★★★☆'},{code:'2308',name:'台達電',stars:'★★★★☆'},{code:'3017',name:'奇鋐',stars:'★★★☆☆'}],
-  risks:[{text:'美國對 AI 晶片出口管制升級',level:'高'},{text:'NVIDIA 下修訂單預測',level:'中'},{text:'台電供電不穩影響資料中心',level:'低'}],
-};
-const CHAT_INIT = [
-  {role:'ai',text:'您好！我是 StockPilot AI 盤中助理。直接問我任何個股問題，我會即時整合股價、籌碼、技術面、新聞為您分析。'},
-  {role:'user',text:'2308 台達電現在可以進嗎？'},
-  {role:'ai',text:'<div style="background:#070F1E;border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:12px;color:#3B82F6;font-weight:600;font-family:monospace">2308</span> <span style="font-size:14px;font-weight:700">台達電</span></div><div style="text-align:right"><div class="mono" style="font-size:18px;font-weight:700">482</div><div style="font-size:11px;color:#22C55E;font-weight:600">▲ 3.5 (+0.73%)</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:#1E293B;border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:#64748B;margin-bottom:3px">目前狀態</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">週線走多，MACD 黃金交叉</div></div><div style="background:#1E293B;border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:#64748B;margin-bottom:3px">支撐區</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">475~480（5 日均線）</div></div><div style="background:#1E293B;border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:#64748B;margin-bottom:3px">壓力區</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">510（前高）、530（密集區）</div></div><div style="background:#1E293B;border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:#64748B;margin-bottom:3px">籌碼</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">外資連 3 日買超，自營偏多</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px"><div style="background:#052e16;border-radius:8px;padding:8px"><div style="font-size:10px;font-weight:700;color:#86EFAC;margin-bottom:3px">Bull</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">站穩 480，目標 550~580</div></div><div style="background:#1c1507;border-radius:8px;padding:8px"><div style="font-size:10px;font-weight:700;color:#FCD34D;margin-bottom:3px">Base</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">480~510 震盪整理 2~3 週</div></div><div style="background:#1c0505;border-radius:8px;padding:8px"><div style="font-size:10px;font-weight:700;color:#FCA5A5;margin-bottom:3px">Bear</div><div style="font-size:11px;color:#CBD5E1;line-height:1.5">跌破 475，下方 455 關鍵</div></div></div><div style="background:linear-gradient(135deg,#0c1a40,#1a0c2e);border:1px solid #1E3A5F;border-radius:8px;padding:10px 12px"><div style="font-size:11px;font-weight:700;color:#60A5FA;margin-bottom:6px">AI 結論</div><p style="font-size:12px;color:#CBD5E1;line-height:1.65;margin:0 0 8px">現價 482 具備佈局價值。建議<strong style="color:#F8FAFC">分批進場</strong>，第一批現價，拉回 475~480 加碼第二批。停損設於 470 以下。</p><div style="display:flex;gap:6px"><span style="background:#052e16;color:#86EFAC;border:1px solid #14532d;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600">可分批佈局</span><span style="background:#0c1a40;color:#93C5FD;border:1px solid #1e3a8a;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600">不建議追價</span></div></div>'},
-];
-const CHAT_CONTEXT = [
-  {label:'現價',val:'482'},{label:'漲跌幅',val:'+0.73%'},{label:'成交量',val:'21,456張'},
-  {label:'外資',val:'買超 8.3億'},{label:'投信',val:'買超 1.2億'},{label:'RSI(14)',val:'62.4'},
-  {label:'MACD',val:'黃金交叉'},{label:'月線乖離',val:'+2.3%'},
-];
-
-// ─── Render helpers ────────────────────────────────────
-function el(tag,attrs,html){const e=document.createElement(tag);Object.entries(attrs||{}).forEach(([k,v])=>e.setAttribute(k,v));if(html!==undefined)e.innerHTML=html;return e}
-
-function renderThemes(){
-  const row=document.getElementById('themes-row');
-  THEMES.forEach(t=>{
-    const d=el('div',{style:'flex-shrink:0;background:#0A1628;border:1px solid #1E293B;border-radius:10px;padding:10px 14px;cursor:pointer;min-width:100px;transition:border-color .15s'},
-      `<div style="font-size:12px;font-weight:600;color:#E2E8F0">${t.name}</div><div style="font-size:14px;font-weight:700;color:${t.color};margin-top:4px">${t.chg}</div>`);
-    d.onmouseover=()=>d.style.borderColor='#334155';
-    d.onmouseout=()=>d.style.borderColor='#1E293B';
-    row.appendChild(d);
-  });
-}
-
-function renderWatchStocks(){
-  const list=document.getElementById('watch-list');
-  WATCH_STOCKS.forEach(s=>{
-    const up=s.chg.startsWith('+');
-    const row=el('div',{class:'row-hover',style:'display:grid;grid-template-columns:72px 1fr 80px 68px 80px 110px;gap:8px;align-items:center'},
-      `<span style="font-size:12px;font-weight:600;color:#60A5FA;font-family:monospace">${s.code}</span>
-       <span style="font-size:12px;color:#E2E8F0">${s.name}</span>
-       <span style="font-size:12px;font-weight:600;text-align:right;font-family:monospace">${s.price}</span>
-       <span style="font-size:12px;font-weight:600;text-align:right;color:${up?'#22C55E':'#EF4444'}">${s.chg}</span>
-       <span style="font-size:11px;color:#94A3B8;text-align:right">${s.vol}</span>
-       <div style="display:flex;align-items:center;gap:5px">
-         <div style="flex:1;background:#1E293B;border-radius:2px;height:3px;overflow:hidden"><div style="background:linear-gradient(90deg,#3B82F6,#A855F7);height:100%;width:${s.score}%"></div></div>
-         <span style="font-size:11px;color:#A855F7;font-weight:600">${s.score}</span>
-       </div>`);
-    list.appendChild(row);
-  });
-}
-
-function renderRisks(){
-  const list=document.getElementById('risk-list');
-  RISKS.forEach(r=>{
-    const color=r.level==='high'?'#EF4444':'#F59E0B';
-    const d=el('div',{style:'display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1E293B'},
-      `<span style="font-size:11px;font-weight:600;color:${color};font-family:monospace;flex-shrink:0;padding-top:1px">${r.code}</span>
-       <div>
-         <div style="font-size:12px;font-weight:600;color:#E2E8F0">${r.name}</div>
-         <div style="font-size:11px;color:#64748B;margin-top:1px">${r.desc}</div>
-       </div>`);
-    list.appendChild(d);
-  });
-}
-
-function renderProjects(){
-  const list=document.getElementById('project-list');
-  const statusColor={活躍:'#22C55E',新建:'#3B82F6',待更新:'#64748B'};
-  PROJECTS.forEach(p=>{
-    const d=el('div',{style:`padding:10px;border-radius:8px;cursor:pointer;margin:1px 0;border:1px solid ${p.active?'#1E3A5F':'transparent'};background:${p.active?'#0C1A30':'transparent'}`},
-      `<div style="font-size:12px;font-weight:600;color:${p.active?'#60A5FA':'#CBD5E1'}">${p.title}</div>
-       <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-         <span style="width:5px;height:5px;border-radius:50%;background:${statusColor[p.status]||'#64748B'};display:inline-block"></span>
-         <span style="font-size:10px;color:#64748B">${p.status}</span>
-       </div>
-       <div style="font-size:10px;color:#475569;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.stocks}</div>`);
-    if(!p.active){d.onmouseover=()=>d.style.background='#0F172A';d.onmouseout=()=>d.style.background='';}
-    list.appendChild(d);
-  });
-}
-
-function renderResearchChat(){
-  const area=document.getElementById('research-chat-area');
-  RESEARCH_MSGS.forEach(m=>area.appendChild(buildChatBubble(m.role,m.text)));
-}
-
-function renderInsights(){
-  const area=document.getElementById('insights-area');
-  let html='<div style="font-size:10px;font-weight:600;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">研究結論</div>';
-  INSIGHTS_DATA.conclusions.forEach(c=>{
-    html+=`<div style="background:#0F172A;border:1px solid #1E293B;border-radius:8px;padding:10px;margin-bottom:6px;display:flex;gap:8px">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.5" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
-      <span style="font-size:12px;color:#CBD5E1;line-height:1.5">${c}</span></div>`;
-  });
-  html+='<div style="font-size:10px;font-weight:600;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;margin-top:14px">候選股票</div>';
-  INSIGHTS_DATA.stocks.forEach(s=>{
-    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0F172A;border:1px solid #1E293B;border-radius:8px;margin-bottom:4px;cursor:pointer">
-      <div><span style="font-size:12px;font-weight:600;color:#60A5FA;font-family:monospace">${s.code}</span> <span style="font-size:12px;color:#CBD5E1">${s.name}</span></div>
-      <span style="font-size:10px;color:#F59E0B">${s.stars}</span></div>`;
-  });
-  html+='<div style="font-size:10px;font-weight:600;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;margin-top:14px">風險清單</div>';
-  INSIGHTS_DATA.risks.forEach(r=>{
-    const rc=r.level==='高'?'#EF4444':r.level==='中'?'#F59E0B':'#64748B';
-    html+=`<div style="display:flex;gap:8px;padding:7px 10px;background:#0F172A;border:1px solid #1E293B;border-radius:8px;margin-bottom:4px">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="2.5" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-      <span style="font-size:11px;color:#CBD5E1;line-height:1.5">${r.text}</span></div>`;
-  });
-  area.innerHTML=html;
-}
-
-function renderThemeRank(){
-  const area=document.getElementById('theme-rank');
-  THEME_RANK.forEach(t=>{
-    const d=el('div',{style:'display:flex;align-items:center;gap:10px;margin-bottom:10px'},
-      `<span style="font-size:12px;font-weight:500;color:#E2E8F0;width:76px;flex-shrink:0">${t.name}</span>
-       <div style="flex:1;background:#1E293B;border-radius:3px;height:6px;overflow:hidden"><div style="background:${t.color};height:100%;width:${t.score}%"></div></div>
-       <span style="font-size:11px;font-weight:600;color:#22C55E;width:44px;text-align:right;flex-shrink:0">${t.chg}</span>`);
-    area.appendChild(d);
-  });
-}
-
-function renderInstitution(data){
-  const area=document.getElementById('institution-table');
-  const isUp=data===BUY_DATA;
-  area.innerHTML=`<div style="display:grid;grid-template-columns:72px 1fr 80px 72px;gap:8px;font-size:11px;color:#64748B;font-weight:500;padding:4px 0 6px;border-bottom:1px solid #1E293B">
-    <span>代號</span><span>名稱</span><span style="text-align:right">法人${isUp?'買':'賣'}超</span><span style="text-align:right">漲跌幅</span></div>`;
-  data.forEach(r=>{
-    const color=isUp?'#22C55E':'#EF4444';
-    const row=el('div',{class:'row-hover',style:'display:grid;grid-template-columns:72px 1fr 80px 72px;gap:8px;align-items:center'},
-      `<span style="font-size:12px;font-weight:600;color:#60A5FA;font-family:monospace">${r.code}</span>
-       <span style="font-size:12px;color:#E2E8F0">${r.name}</span>
-       <span style="font-size:12px;font-weight:600;color:${color};text-align:right">${r.amt}</span>
-       <span style="font-size:12px;font-weight:600;color:${color};text-align:right">${r.chg}</span>`);
-    area.appendChild(row);
-  });
-}
-
-function renderWatchlist(tag){
-  const grid=document.getElementById('wl-grid');
-  grid.innerHTML='';
-  const tagColors={AI:{bg:'#0c1a40',tc:'#93C5FD'},重電:{bg:'#1c1507',tc:'#FCD34D'},軍工:{bg:'#1c0505',tc:'#FCA5A5'},記憶體:{bg:'#1a0c1a',tc:'#D8B4FE'},ETF:{bg:'#052e16',tc:'#86EFAC'},其他:{bg:'#0F172A',tc:'#94A3B8'}};
-  WL_STOCKS.filter(s=>tag==='全部'||s.tag===tag).forEach(s=>{
-    const up=s.chg.startsWith('+');
-    const tc=tagColors[s.tag]||tagColors['其他'];
-    const riskColor=s.risk==='低'?'#22C55E':s.risk==='中'?'#F59E0B':'#EF4444';
-    const card=el('div',{class:'card',style:'padding:14px;cursor:pointer'},
-      `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
-          <div style="font-size:11px;color:#3B82F6;font-weight:600;font-family:monospace">${s.code}</div>
-          <div style="font-size:13px;font-weight:600;margin-top:2px">${s.name}</div>
-        </div>
-        <span style="font-size:10px;padding:2px 6px;background:${tc.bg};color:${tc.tc};border-radius:4px;font-weight:500">${s.tag}</span>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
-        <span class="mono" style="font-size:18px;font-weight:700">${s.price}</span>
-        <span style="font-size:12px;font-weight:600;color:${up?'#22C55E':'#EF4444'}">${s.chg}</span>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div style="flex:1">
-          <div style="font-size:10px;color:#64748B;margin-bottom:3px">風險</div>
-          <span style="font-size:11px;font-weight:600;color:${riskColor}">${s.risk}</span>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:10px;color:#64748B;margin-bottom:3px">AI 評分</div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <div style="flex:1;background:#1E293B;border-radius:2px;height:3px;overflow:hidden"><div style="background:linear-gradient(90deg,#3B82F6,#A855F7);height:100%;width:${s.score}%"></div></div>
-            <span style="font-size:11px;color:#A855F7;font-weight:600">${s.score}</span>
-          </div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:#64748B;border-top:1px solid #1E293B;padding-top:8px">${s.reason}</div>`);
-    card.onmouseover=()=>card.style.borderColor='#334155';
-    card.onmouseout=()=>card.style.borderColor='#1E293B';
-    grid.appendChild(card);
-  });
-}
-
-function renderWlTabs(){
-  const tabs=document.getElementById('wl-tabs');
-  ['全部','AI','重電','軍工','記憶體','ETF','其他'].forEach((t,i)=>{
-    const s=el('span',{class:`chip${i===0?' on':''}`},t);
-    s.onclick=()=>{
-      document.querySelectorAll('#wl-tabs .chip').forEach(c=>c.classList.remove('on'));
-      s.classList.add('on');
-      renderWatchlist(t);
-    };
-    tabs.appendChild(s);
-  });
-}
-
-function renderHoldings(){
-  const list=document.getElementById('holdings-list');
-  HOLDINGS.forEach(h=>{
-    const up=h.pnl.startsWith('+');
-    const riskColor=h.risk==='低'?'#22C55E':h.risk==='中'?'#F59E0B':'#EF4444';
-    const row=el('div',{class:'row-hover',style:'display:grid;grid-template-columns:72px 1fr 80px 80px 70px 70px 110px;gap:8px;align-items:center'},
-      `<span style="font-size:12px;font-weight:600;color:#60A5FA;font-family:monospace">${h.code}</span>
-       <span style="font-size:12px;color:#E2E8F0">${h.name}</span>
-       <span style="font-size:12px;text-align:right;font-family:monospace">${h.price}</span>
-       <span style="font-size:12px;text-align:right;color:#94A3B8;font-family:monospace">${h.cost}</span>
-       <span style="font-size:12px;font-weight:600;text-align:right;color:${up?'#22C55E':'#EF4444'}">${h.pnl}</span>
-       <span style="font-size:11px;font-weight:600;text-align:right;color:${riskColor}">${h.risk}</span>
-       <span style="font-size:10px;font-weight:600;color:${h.dc};background:${h.dc}22;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">${h.dec}</span>`);
-    list.appendChild(row);
-  });
-}
-
-function renderPortfolioStats(){
-  const area=document.getElementById('portfolio-stats');
-  P_STATS.forEach(s=>{
-    area.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1E293B">
-      <span style="font-size:12px;color:#64748B">${s.label}</span>
-      <span class="mono" style="font-size:12px;font-weight:600;color:${s.color}">${s.val}</span></div>`;
-  });
-}
-
-function buildChatBubble(role,text){
-  const wrap=el('div',{style:`display:flex;gap:10px;margin-bottom:20px${role==='user'?';justify-content:flex-end':''}`});
-  if(role==='ai'){
-    const av=el('div',{class:'avatar'});
-    av.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
-    wrap.appendChild(av);
-  }
-  const bubble=el('div',{class:role==='ai'?'chat-ai':'chat-user'});
-  if(role==='ai') bubble.innerHTML+=`<div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:500">StockPilot AI</div>`;
-  const p=el('div',{style:'font-size:13px;color:#CBD5E1;line-height:1.7'});
-  p.innerHTML=text;
-  bubble.appendChild(p);
-  wrap.appendChild(bubble);
-  return wrap;
-}
-
-function renderChatInit(){
-  const area=document.getElementById('chat-messages');
-  const divider=el('div',{style:'text-align:center;margin-bottom:24px'},
-    `<span style="display:inline-flex;align-items:center;gap:6px;background:#0F172A;border:1px solid #1E293B;border-radius:20px;padding:6px 14px;font-size:12px;color:#64748B"><span class="live"></span>今日盤後 · 6月14日</span>`);
-  area.appendChild(divider);
-  CHAT_INIT.forEach(m=>area.appendChild(buildChatBubble(m.role,m.text)));
-}
-
-function renderChatContext(){
-  const area=document.getElementById('chat-context');
-  let html='<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">即時數據</div>';
-  CHAT_CONTEXT.forEach(item=>{
-    const isPos=item.val.includes('+')||item.val.includes('買超')||item.val.includes('黃金');
-    const isNeg=item.val.includes('-');
-    const color=isPos?'#22C55E':isNeg?'#EF4444':'#F8FAFC';
-    html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1E293B">
-      <span style="font-size:11px;color:#64748B">${item.label}</span>
-      <span class="mono" style="font-size:11px;font-weight:600;color:${color}">${item.val}</span></div>`;
-  });
-  html+='<div style="margin-top:14px"><div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">近期新聞</div>';
-  [['台達電 Q2 AI 電源出貨量創新高','2小時前'],['外資連3日買超台達電，估目標500','昨日'],['台達電與微軟簽署 AI 資料中心供電合約','2日前']].forEach(([n,t])=>{
-    html+=`<div style="padding:8px 0;border-bottom:1px solid #1E293B"><div style="font-size:11px;color:#CBD5E1;line-height:1.5;margin-bottom:2px">${n}</div><div style="font-size:10px;color:#475569">${t}</div></div>`;
-  });
-  html+='</div>';
-  area.innerHTML=html;
-}
-
-// ─── Navigation ────────────────────────────────────────
-function go(name,navEl){
-  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');});
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const s=document.getElementById('screen-'+name);
-  s.classList.add('active');
-  navEl.classList.add('active');
-}
-
-// ─── Interactions ──────────────────────────────────────
-function setChip(type){
-  document.getElementById('chip-buy').classList.toggle('on',type==='buy');
-  document.getElementById('chip-sell').classList.toggle('on',type==='sell');
-  renderInstitution(type==='buy'?BUY_DATA:SELL_DATA);
-}
-
-function sendChat(){
-  const input=document.getElementById('chat-input');
-  const val=input.value.trim();
-  if(!val) return;
-  const area=document.getElementById('chat-messages');
-  area.appendChild(buildChatBubble('user',val));
-  input.value='';
-  area.scrollTop=area.scrollHeight;
-  setTimeout(()=>{
-    area.appendChild(buildChatBubble('ai',`正在分析「<strong style="color:#F8FAFC">${val}</strong>」，整合最新股價、籌碼與技術面數據...`));
-    area.scrollTop=area.scrollHeight;
-  },600);
-}
-
-function sendResearch(){
-  const input=document.getElementById('research-input');
-  const val=input.value.trim();
-  if(!val) return;
-  const area=document.getElementById('research-chat-area');
-  area.appendChild(buildChatBubble('user',val));
-  input.value='';
-  area.scrollTop=area.scrollHeight;
-  setTimeout(()=>{
-    area.appendChild(buildChatBubble('ai',`正在研究「<strong style="color:#F8FAFC">${val}</strong>」...`));
-    area.scrollTop=area.scrollHeight;
-  },600);
-}
-
-// ─── Charts ────────────────────────────────────────────
-function initCharts(){
-  const chartOpts={responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1E293B'},ticks:{color:'#64748B',font:{size:10}}},y:{grid:{color:'#1E293B'},ticks:{color:'#64748B',font:{size:10}}}}};
-  const ctx1=document.getElementById('indexChart');
-  if(ctx1) new Chart(ctx1,{type:'line',data:{labels:['06/02','06/03','06/06','06/07','06/08','06/09','06/10','06/13','06/14'],datasets:[{data:[22380,22510,22290,22650,22720,22580,22690,22704,22847],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.3}]},options:chartOpts});
-
-  const flowVals=[-42,85,63,-28,91,74,128];
-  const ctx2=document.getElementById('flowChart');
-  if(ctx2) new Chart(ctx2,{type:'bar',data:{labels:['06/06','06/07','06/08','06/09','06/10','06/13','06/14'],datasets:[{data:flowVals,backgroundColor:flowVals.map(v=>v>=0?'#22C55E':'#EF4444'),borderRadius:3}]},options:chartOpts});
-
-  const ctx3=document.getElementById('allocChart');
-  if(ctx3) new Chart(ctx3,{type:'doughnut',data:{labels:['AI題材','重電','軍工','記憶體','其他'],datasets:[{data:[52,18,12,10,8],backgroundColor:['#3B82F6','#F97316','#EF4444','#A855F7','#64748B'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:10},boxWidth:8,padding:6}}},cutout:'64%'}});
-}
-
-// ─── Init ──────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  renderThemes();
-  renderWatchStocks();
-  renderRisks();
-  renderProjects();
-  renderResearchChat();
-  renderInsights();
-  renderThemeRank();
-  renderInstitution(BUY_DATA);
-  renderWlTabs();
-  renderWatchlist('全部');
-  renderHoldings();
-  renderPortfolioStats();
-  renderChatInit();
-  renderChatContext();
-  initCharts();
-});
-</script>
 </body>
 </html>

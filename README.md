@@ -1,17 +1,29 @@
-# StockPilot AI — AI Investment OS
+# StockPilot AI
 
-> 專為台股投資人設計的 AI 投資研究與決策平台
+AI Investment OS for Taiwan stock investors.
 
-## 功能
+## What is this
 
-- **Dashboard** — 30秒掌握市場動態
-- **Research Workspace** — AI 投資研究對話空間
-- **Market Radar** — 題材輪動、資金流向即時追蹤
-- **Watchlist** — AI 精選觀察股票池
-- **Portfolio Command Center** — 每日持股決策中心
-- **Intraday AI Chat** — 盤中即時 AI 助理
+StockPilot AI is designed to help users move from market information overload to structured investment decisions.
 
-## 設計理念
+## Core experience
 
-這不是股票資訊網站，這是一個 **AI Investment OS**。
-核心體驗：Research Workspace + Portfolio Command Center + Intraday AI Chat
+- Research Workspace
+- Portfolio Command Center
+- Intraday AI Chat
+
+## Design intent
+
+- Professional
+- Clean
+- Dark mode first
+- High information density
+- Decision driven
+
+## Documentation
+
+- `docs/SDD.md`
+- `docs/analysis-rulebook.md`
+- `docs/api-contract.md`
+- `docs/risk-control.md`
+- `docs/roadmap.md`
