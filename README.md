@@ -13,6 +13,15 @@ The current specification also defines:
 - versioned user strategy profiles
 - multi-user analysis boundaries
 
+## Read first
+
+If you are a new contributor or another LLM entering this repo, read these first:
+
+1. `AGENTS.md`
+2. `docs/SDD.md`
+3. `docs/api-contract.md`
+4. `docs/roadmap.md`
+
 ## Core experience
 
 - Research Workspace
@@ -29,8 +38,10 @@ The current specification also defines:
 
 ## Documentation
 
+- `AGENTS.md`
 - `docs/SDD.md`
 - `docs/analysis-rulebook.md`
 - `docs/api-contract.md`
 - `docs/risk-control.md`
 - `docs/roadmap.md`
+- `docs/PR_DESCRIPTION.md`

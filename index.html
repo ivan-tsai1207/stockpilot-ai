@@ -3,83 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockPilot AI｜AI Investment OS</title>
-  <meta name="description" content="StockPilot AI 是專為台股投資人設計的 AI 投資研究與決策平台。">
+  <title>StockPilot AI | LLM Investment OS</title>
+  <meta name="description" content="StockPilot AI 是具備獨立股票 session、策略設定與 LLM orchestration 的 AI Investment OS。">
   <style>
     :root{
-      --bg:#07111f; --bg-2:#0b1729; --panel:#0f1b31; --line:rgba(148,163,184,.16);
-      --text:#ecf4ff; --muted:#90a4c7; --blue:#38bdf8; --green:#4ade80;
-      --amber:#fbbf24; --red:#fb7185; --violet:#a78bfa; --shadow:0 24px 60px rgba(2,8,23,.42);
+      --bg:#08111d;
+      --bg-soft:#0d1a2c;
+      --panel:#12223a;
+      --panel-soft:rgba(18,34,58,.72);
+      --line:rgba(147,197,253,.14);
+      --text:#edf5ff;
+      --muted:#95a8c7;
+      --cyan:#67e8f9;
+      --lime:#86efac;
+      --gold:#fcd34d;
+      --rose:#fda4af;
+      --shadow:0 30px 80px rgba(0,0,0,.38);
       --radius:18px;
     }
-    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
-      margin:0;color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;
+      margin:0;
+      color:var(--text);
+      font-family:"IBM Plex Sans", "Segoe UI", sans-serif;
+      line-height:1.6;
       background:
-        radial-gradient(1200px 700px at 10% 0%, rgba(56,189,248,.12), transparent 50%),
-        radial-gradient(800px 500px at 90% 10%, rgba(167,139,250,.10), transparent 45%),
-        linear-gradient(180deg, #050b16 0%, #091223 100%);
+        radial-gradient(900px 500px at 8% 0%, rgba(103,232,249,.10), transparent 55%),
+        radial-gradient(700px 420px at 92% 6%, rgba(134,239,172,.08), transparent 50%),
+        linear-gradient(180deg, #050b14 0%, #091323 100%);
     }
     a{color:inherit}
-    .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 64px}
+    .wrap{max-width:1260px;margin:0 auto;padding:24px 20px 64px}
     .topbar{
-      position:sticky;top:16px;z-index:50;display:flex;justify-content:space-between;align-items:center;gap:16px;
-      padding:14px 18px;border:1px solid var(--line);border-radius:999px;background:rgba(7,17,31,.78);backdrop-filter:blur(18px);box-shadow:var(--shadow)
+      position:sticky;top:16px;z-index:50;
+      display:flex;justify-content:space-between;align-items:center;gap:16px;
+      padding:14px 18px;border:1px solid var(--line);border-radius:999px;
+      background:rgba(8,17,29,.82);backdrop-filter:blur(18px);box-shadow:var(--shadow)
     }
-    .brand{font-weight:700;letter-spacing:.01em}.brand span{color:var(--blue)}
+    .brand{font-weight:700;letter-spacing:.02em}
+    .brand span{color:var(--cyan)}
     .nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-    .nav a{padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--muted);border:1px solid transparent}
+    .nav a{
+      text-decoration:none;color:var(--muted);padding:8px 12px;border-radius:999px;border:1px solid transparent;
+      transition:background .18s ease,color .18s ease,border-color .18s ease
+    }
     .nav a:hover,.nav a:focus-visible{color:var(--text);border-color:var(--line);background:rgba(255,255,255,.04);outline:none}
-    .hero{display:grid;grid-template-columns:1.3fr .9fr;gap:18px;margin-top:20px}
-    .panel{background:linear-gradient(180deg, rgba(19,35,63,.95), rgba(11,23,41,.95));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .hero-main{padding:32px}
-    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid rgba(56,189,248,.22);border-radius:999px;background:rgba(56,189,248,.08);color:#bae6fd;font-size:13px}
-    h1{margin:16px 0 12px;font-size:clamp(34px,5vw,58px);line-height:1.05;letter-spacing:0}
-    .lead{max-width:720px;color:var(--muted);font-size:16px}
-    .badges{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}
-    .badge{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:#d8e6ff;background:rgba(255,255,255,.03);font-size:13px}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border-radius:14px;text-decoration:none;font-weight:600;border:1px solid transparent}
-    .btn.primary{background:linear-gradient(135deg,var(--blue),#8b5cf6);color:#fff}
-    .btn.secondary{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--text)}
+    .hero{
+      margin-top:22px;
+      display:grid;grid-template-columns:1.25fr .95fr;gap:18px
+    }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(18,34,58,.96), rgba(10,21,37,.96));
+      box-shadow:var(--shadow)
+    }
+    .hero-main{padding:34px}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 12px;
+      border-radius:999px;border:1px solid rgba(103,232,249,.22);
+      background:rgba(103,232,249,.08);color:#c8f8fd;font-size:13px
+    }
+    h1{margin:16px 0 12px;font-size:clamp(36px,5.2vw,62px);line-height:1.02}
+    .lead{max-width:720px;color:var(--muted);font-size:17px}
+    .badges,.doc-links,.stat-grid,.card-grid,.flow-grid,.doc-grid{display:flex;flex-wrap:wrap;gap:10px}
+    .badge,.doc-chip{
+      padding:8px 12px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.03);color:#dce8fb;font-size:13px
+    }
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+    .btn{
+      min-height:44px;padding:11px 16px;border-radius:14px;font-weight:600;text-decoration:none;
+      display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent
+    }
+    .btn.primary{background:linear-gradient(135deg,#22d3ee,#10b981);color:#07111d}
+    .btn.secondary{background:rgba(255,255,255,.03);border-color:var(--line)}
     .hero-side{padding:18px;display:grid;gap:12px}
-    .metric{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
-    .metric .label{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-    .metric .value{margin-top:7px;font-size:26px;font-weight:700}
-    .metric .desc{margin-top:6px;color:var(--muted);font-size:14px}
+    .metric{
+      padding:16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03)
+    }
+    .metric .label{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .metric .value{font-size:28px;font-weight:700;margin-top:6px}
+    .metric .desc{font-size:14px;color:var(--muted);margin-top:6px}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}
     .section{padding:22px}
-    .section h2{margin:0 0 6px;font-size:22px}.section p{margin:0;color:var(--muted)}
-    .span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-5{grid-column:span 5}.span-4{grid-column:span 4}
-    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
-    .card{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
-    .card .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .card .v{margin-top:8px;font-size:20px;font-weight:700}
-    .bar-list{display:grid;gap:12px;margin-top:16px}
-    .bar-row{display:grid;grid-template-columns:170px 1fr 52px;gap:12px;align-items:center}
-    .bar-track{height:10px;border-radius:999px;background:#0b1426;border:1px solid var(--line);overflow:hidden}
-    .bar-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--green))}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
-    .stack{display:grid;gap:12px;margin-top:14px}
-    .step{display:grid;grid-template-columns:42px 1fr;gap:12px}
-    .step .num{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(56,189,248,.12);color:#bae6fd;font-weight:700}
-    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px}
-    .pill.ok{color:#86efac;background:rgba(74,222,128,.08)} .pill.warn{color:#fde68a;background:rgba(251,191,36,.08)} .pill.bad{color:#fda4af;background:rgba(251,113,133,.08)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
+    .section h2{margin:0 0 8px;font-size:24px}
+    .section p{margin:0;color:var(--muted)}
+    .span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+    .card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+    .card,.flow,.doc-card{
+      padding:16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03)
+    }
+    .card .k,.flow .k,.doc-card .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .card .v,.flow .v,.doc-card .v{margin-top:8px;font-size:20px;font-weight:700}
+    .card .body,.flow .body,.doc-card .body{margin-top:8px;color:var(--muted);font-size:14px}
+    .flow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+    .list{display:grid;gap:10px;margin-top:14px}
+    .item{
+      display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:flex-start;
+      padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)
+    }
+    .item .num{
+      width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
+      background:rgba(103,232,249,.12);color:#c8f8fd;font-weight:700
+    }
+    table{width:100%;border-collapse:collapse;margin-top:14px}
     th,td{padding:12px 8px;border-bottom:1px solid var(--line);text-align:left}
     th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-    .links a{padding:10px 12px;border:1px solid var(--line);border-radius:14px;text-decoration:none;background:rgba(255,255,255,.03)}
-    .footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center}
-    @media (max-width: 960px){
-      .hero,.two-col{grid-template-columns:1fr}
-      .cards{grid-template-columns:repeat(2,1fr)}
-      .span-8,.span-7,.span-5,.span-4{grid-column:span 12}
-      .bar-row{grid-template-columns:1fr;gap:6px}
-      .topbar{border-radius:20px;align-items:flex-start;flex-direction:column}
+    .docs-links{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+    .doc-card a{text-decoration:none}
+    .footer{margin-top:24px;text-align:center;color:var(--muted);font-size:13px}
+    @media (max-width: 1024px){
+      .hero,.flow-grid,.docs-links{grid-template-columns:1fr}
+      .card-grid{grid-template-columns:repeat(2,1fr)}
+      .span-8,.span-6,.span-4{grid-column:span 12}
     }
-    @media (max-width: 640px){
-      .wrap{padding:14px 12px 48px}.hero-main{padding:24px}.cards{grid-template-columns:1fr} h1{font-size:34px}
+    @media (max-width: 720px){
+      .wrap{padding:14px 12px 48px}
+      .topbar{flex-direction:column;align-items:flex-start;border-radius:22px}
+      .hero-main{padding:24px}
+      .card-grid{grid-template-columns:1fr}
+      h1{font-size:36px}
+      .docs-links{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -88,116 +134,135 @@
     <header class="topbar">
       <div class="brand">StockPilot <span>AI</span></div>
       <nav class="nav" aria-label="主導覽">
-        <a href="#dashboard">Dashboard</a><a href="#research">Research</a><a href="#portfolio">Portfolio</a><a href="#chat">Chat</a><a href="#docs">Docs</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#sessions">Sessions</a>
+        <a href="#strategy">Strategy</a>
+        <a href="#backend">Backend</a>
+        <a href="#docs">Docs</a>
       </nav>
     </header>
 
     <section class="hero">
       <div class="panel hero-main">
-        <div class="eyebrow">AI Investment OS · 台股分析與決策系統</div>
-        <h1>不是股票資訊網站。<br>是可查證、可解釋、可重複使用的分析作業系統。</h1>
-        <p class="lead">StockPilot AI 以「證據 → 推論 → 策略 → 風險」為核心，協助使用者從大盤、產業、消息、基本面、技術面到籌碼面，形成一致且可執行的投資決策。</p>
-        <div class="badges">
-          <span class="badge">Professional</span><span class="badge">Clean</span><span class="badge">Dark Mode First</span><span class="badge">High Information Density</span><span class="badge">Decision Driven</span>
+        <div class="eyebrow">AI Investment OS · LLM Session Architecture</div>
+        <h1>每一檔股票，都是一個獨立的分析腦。</h1>
+        <p class="lead">StockPilot AI 把股票研究拆成可隔離的 session，讓 2308 與 2408 不共用對話污染；同時把使用者投資風格做成 Strategy Profile，讓同一套分析邏輯能服務不同風格的投資人。</p>
+        <div class="badges" style="margin-top:22px">
+          <span class="badge">Isolated Stock Sessions</span>
+          <span class="badge">Structured Memory</span>
+          <span class="badge">Versioned Strategies</span>
+          <span class="badge">Multi-user Ready</span>
+          <span class="badge">Evidence Driven</span>
         </div>
         <div class="actions">
-          <a class="btn primary" href="#research">查看 Research Workspace</a>
-          <a class="btn secondary" href="#portfolio">查看 Portfolio Center</a>
+          <a class="btn primary" href="#sessions">看 Session 架構</a>
+          <a class="btn secondary" href="#docs">看規格文件</a>
         </div>
       </div>
       <aside class="panel hero-side">
-        <div class="metric"><div class="label">Market Status</div><div class="value">Neutral</div><div class="desc">大盤偏震盪，先看確認，不急著追價。</div></div>
-        <div class="metric"><div class="label">Portfolio Risk</div><div class="value">Medium</div><div class="desc">以低成本、分批布局、停損停利為原則。</div></div>
-        <div class="metric"><div class="label">Today’s Action</div><div class="value">Watch Closely</div><div class="desc">先看拉回、守住與假突破，再決定是否動作。</div></div>
+        <div class="metric"><div class="label">Context Boundary</div><div class="value">Per Stock</div><div class="desc">每檔股票獨立 session，不共用 live context。</div></div>
+        <div class="metric"><div class="label">Strategy Layer</div><div class="value">Versioned</div><div class="desc">每位使用者可有多組策略，且保留版本。</div></div>
+        <div class="metric"><div class="label">Memory Policy</div><div class="value">Compressed</div><div class="desc">用摘要記憶與結構化事實，而不是無限長對話。</div></div>
       </aside>
     </section>
 
-    <section id="dashboard" class="grid">
-      <article class="panel section span-8">
-        <h2>Dashboard</h2>
-        <p>30 秒掌握市場，首頁先給方向與風險，不把股價當唯一主角。</p>
-        <div class="cards">
-          <div class="card"><div class="k">Market Sentiment</div><div class="v">52 / 100</div></div>
-          <div class="card"><div class="k">Hot Themes</div><div class="v">AI · 記憶體</div></div>
-          <div class="card"><div class="k">Money Flow</div><div class="v">+8.3B</div></div>
-          <div class="card"><div class="k">Risk Alerts</div><div class="v">3</div></div>
+    <section id="architecture" class="grid">
+      <article class="panel section span-12">
+        <h2>Architecture Focus</h2>
+        <p>這一版系統規格的重心，已從「股票分析概念」推進到「可實作的 LLM 後端架構」。</p>
+        <div class="card-grid">
+          <div class="card"><div class="k">Analysis Unit</div><div class="v">User + Strategy + Symbol</div><div class="body">分析單位不是全站聊天室，而是綁定使用者、策略、股票與週期的 session。</div></div>
+          <div class="card"><div class="k">Prompt Inputs</div><div class="v">Rulebook + Memory + Data</div><div class="body">模型輸入會組合系統規則、策略設定、個股記憶與最新資料。</div></div>
+          <div class="card"><div class="k">Output Style</div><div class="v">Bull / Base / Bear</div><div class="body">未來趨勢不用保證式預測，而是改用情境研判與失效條件。</div></div>
+          <div class="card"><div class="k">Auditability</div><div class="v">Snapshot First</div><div class="body">每次分析保留快照、資料新鮮度、模型版本與策略版本。</div></div>
         </div>
-        <div class="bar-list" aria-label="市場題材熱度">
-          <div class="bar-row"><div>AI Infrastructure</div><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><div>92</div></div>
-          <div class="bar-row"><div>Power & Energy</div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div><div>74</div></div>
-          <div class="bar-row"><div>Memory</div><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div><div>63</div></div>
+      </article>
+    </section>
+
+    <section id="sessions" class="grid">
+      <article class="panel section span-8">
+        <h2>Isolated Stock Sessions</h2>
+        <p>不同股票預設不能互相影響。這不是 UI 細節，而是整個系統的資料與 prompt 邊界。</p>
+        <div class="flow-grid">
+          <div class="flow"><div class="k">Session Key</div><div class="v">User + Strategy + Symbol + Timeframe</div><div class="body">同一個使用者看不同股票，會進不同的分析脈絡。</div></div>
+          <div class="flow"><div class="k">Memory Layer</div><div class="v">Summary + Structured Facts</div><div class="body">把可追溯內容壓成可控 token，不回放全部歷史。</div></div>
+          <div class="flow"><div class="k">Live Query</div><div class="v">One Stock at a Time</div><div class="body">盤中詢問與研究模式都綁定到單一股票 session。</div></div>
+        </div>
+        <div class="list">
+          <div class="item"><div class="num">1</div><div><strong>建立或重用 session</strong><div style="color:var(--muted)">若 `user + strategy + symbol + timeframe` 相同且仍 active，系統重用原本 session。</div></div></div>
+          <div class="item"><div class="num">2</div><div><strong>抓最新市場資料</strong><div style="color:var(--muted)">價格、新聞、籌碼與大盤資料依照新鮮度規則補齊。</div></div></div>
+          <div class="item"><div class="num">3</div><div><strong>組 prompt 並呼叫 LLM</strong><div style="color:var(--muted)">只附這檔股票的記憶與資料，避免與其他標的互相污染。</div></div></div>
         </div>
       </article>
       <article class="panel section span-4">
-        <h2>Today’s Watch</h2>
+        <h2>Session Types</h2>
         <table>
-          <thead><tr><th>Stock</th><th>AI</th><th>Risk</th></tr></thead>
+          <thead><tr><th>Type</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td>2308 台達電</td><td>Hold</td><td><span class="pill ok">Low</span></td></tr>
-            <tr><td>1519 華城</td><td>Watch</td><td><span class="pill warn">Medium</span></td></tr>
-            <tr><td>2408 南亞科</td><td>Review</td><td><span class="pill bad">High</span></td></tr>
+            <tr><td>Research</td><td>中長結構研究</td></tr>
+            <tr><td>Monitor</td><td>持股追蹤與風險更新</td></tr>
+            <tr><td>Intraday</td><td>盤中短時效判斷</td></tr>
           </tbody>
         </table>
       </article>
     </section>
 
-    <section id="research" class="grid">
-      <article class="panel section span-12">
-        <h2>Research Workspace</h2>
-        <p>左側專案、中間 AI 對話、右側自動整理 Insights。這是整個產品的核心工作流。</p>
-        <div class="two-col">
-          <div class="card">
-            <div class="pill">Research Projects</div>
-            <div class="stack">
-              <div class="step"><div class="num">1</div><div><strong>台股每日盤勢</strong><p>每日盤前與盤後摘要，累積研究紀錄。</p></div></div>
-              <div class="step"><div class="num">2</div><div><strong>AI Infrastructure</strong><p>題材、供應鏈、財報與籌碼交叉分析。</p></div></div>
-              <div class="step"><div class="num">3</div><div><strong>ETF Strategy</strong><p>資產配置、風險與再平衡決策。</p></div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="pill">Research Insights</div>
-            <div class="stack">
-              <div class="step"><div class="num">A</div><div><strong>產業結論</strong><p>目前屬於題材輪動期，資金快速切換。</p></div></div>
-              <div class="step"><div class="num">B</div><div><strong>候選股票</strong><p>由研究主題反推出可觀察標的。</p></div></div>
-              <div class="step"><div class="num">C</div><div><strong>風險清單</strong><p>避免過熱、追價與資料不足硬下結論。</p></div></div>
-            </div>
-          </div>
+    <section id="strategy" class="grid">
+      <article class="panel section span-6">
+        <h2>Strategy Profiles</h2>
+        <p>同一套模型，不應只輸出一種投資風格。策略偏好要成為系統一級公民。</p>
+        <div class="card-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="card"><div class="k">Risk Tolerance</div><div class="v">Low / Medium / High</div><div class="body">影響建議語氣、進場保守程度與風險提醒強度。</div></div>
+          <div class="card"><div class="k">Entry Preference</div><div class="v">Pullback or Momentum</div><div class="body">可設定是否接受追高、是否偏好拉回承接。</div></div>
+          <div class="card"><div class="k">Position Rules</div><div class="v">Size + Stop + Take Profit</div><div class="body">讓建議能落到倉位與停利停損，不只停在描述。</div></div>
+          <div class="card"><div class="k">Version Control</div><div class="v">Historical Trace</div><div class="body">每次分析都記住當時用哪個策略版本。</div></div>
+        </div>
+      </article>
+      <article class="panel section span-6">
+        <h2>Output Contract</h2>
+        <p>無論使用者喜歡保守或積極，系統都仍然要守住分析底線。</p>
+        <div class="list">
+          <div class="item"><div class="num">A</div><div><strong>事實與推論分開</strong><div style="color:var(--muted)">不能把新聞、數據、假設與研判混在一起說。</div></div></div>
+          <div class="item"><div class="num">B</div><div><strong>策略不覆蓋風控</strong><div style="color:var(--muted)">即使用戶接受追高，系統也必須保留追高風險提醒。</div></div></div>
+          <div class="item"><div class="num">C</div><div><strong>情境式預測</strong><div style="color:var(--muted)">用 Bull / Base / Bear 情境表達未來走勢，而不是保證結論。</div></div></div>
         </div>
       </article>
     </section>
 
-    <section id="portfolio" class="grid">
-      <article class="panel section span-7">
-        <h2>Portfolio Command Center</h2>
-        <p>產品靈魂：回答今天該做什麼，而不是只給一個價格。</p>
-        <div class="cards" style="grid-template-columns:repeat(2,1fr)">
-          <div class="card"><div class="k">Do Nothing</div><div class="v">12</div></div>
-          <div class="card"><div class="k">Watch Closely</div><div class="v">5</div></div>
-          <div class="card"><div class="k">Consider Add</div><div class="v">3</div></div>
-          <div class="card"><div class="k">High Risk</div><div class="v">1</div></div>
+    <section id="backend" class="grid">
+      <article class="panel section span-12">
+        <h2>Backend Architecture</h2>
+        <p>後端拆分以 orchestration 為中心，讓 session、strategy、market data、memory 各自負責自己的邊界。</p>
+        <div class="card-grid">
+          <div class="card"><div class="k">API Gateway</div><div class="v">Auth + Entry</div><div class="body">對前端統一提供 API，處理驗證與流量控制。</div></div>
+          <div class="card"><div class="k">Session Service</div><div class="v">Session Lifecycle</div><div class="body">管理獨立 stock session、message 與狀態。</div></div>
+          <div class="card"><div class="k">Strategy Service</div><div class="v">User Profiles</div><div class="body">管理使用者策略、版本與預設策略。</div></div>
+          <div class="card"><div class="k">Analysis Orchestrator</div><div class="v">Prompt + LLM + Snapshot</div><div class="body">載入資料與記憶，呼叫模型並寫回分析快照。</div></div>
         </div>
-      </article>
-      <article id="chat" class="panel section span-5">
-        <h2>Intraday AI Chat</h2>
-        <p>盤中直接問：現在可以進嗎、該賣嗎、爆量代表什麼。</p>
-        <div class="stack">
-          <div class="step"><div class="num">Q</div><div><strong>2308 台達電現在可以進嗎？</strong><p>系統會回覆支撐、壓力、風險與情境分析。</p></div></div>
-          <div class="step"><div class="num">A</div><div><strong>可觀察 / 分批布局 / 不建議追價</strong><p>結論會隨資料狀態與風控規則動態更新。</p></div></div>
+        <div class="list">
+          <div class="item"><div class="num">1</div><div><strong>Market Data Service</strong><div style="color:var(--muted)">正規化股價、籌碼、新聞、財報與大盤資料，並管理資料新鮮度。</div></div></div>
+          <div class="item"><div class="num">2</div><div><strong>Memory Service</strong><div style="color:var(--muted)">負責 session summary、結構化記憶與摘要壓縮，不讓 token 無限膨脹。</div></div></div>
+          <div class="item"><div class="num">3</div><div><strong>Worker Queue</strong><div style="color:var(--muted)">收盤後重分析、批次 watchlist 掃描、異常事件通知都應走非同步。</div></div></div>
         </div>
       </article>
     </section>
 
     <section id="docs" class="grid">
       <article class="panel section span-12">
-        <h2>Documents</h2>
-        <p>這個 repo 已同步放入 SDD 規格與分析合約，方便直接對外分享。</p>
-        <div class="links">
-          <a href="./README.md">README</a><a href="./docs/SDD.md">SDD</a><a href="./docs/analysis-rulebook.md">Analysis Rulebook</a><a href="./docs/api-contract.md">API Contract</a><a href="./docs/risk-control.md">Risk Control</a><a href="./docs/roadmap.md">Roadmap</a>
+        <h2>Repo Docs</h2>
+        <p>這個 repo 現在已經包含給工程師、產品人員與其他 LLM 的導讀文件，避免每次重複說明背景。</p>
+        <div class="docs-links">
+          <div class="doc-card"><div class="k">Read First</div><div class="v"><a href="./AGENTS.md">AGENTS.md</a></div><div class="body">定義產品目標、協作規則、session 邊界與 branch workflow。</div></div>
+          <div class="doc-card"><div class="k">System Spec</div><div class="v"><a href="./docs/SDD.md">SDD.md</a></div><div class="body">系統規格、schema、backend architecture、流程與設計原則。</div></div>
+          <div class="doc-card"><div class="k">API Draft</div><div class="v"><a href="./docs/api-contract.md">api-contract.md</a></div><div class="body">strategy profile、stock session、memory 與 analysis API 草案。</div></div>
+          <div class="doc-card"><div class="k">Roadmap</div><div class="v"><a href="./docs/roadmap.md">roadmap.md</a></div><div class="body">從 session layer 到個人化投資輔助的實作順序。</div></div>
+          <div class="doc-card"><div class="k">Rulebook</div><div class="v"><a href="./docs/analysis-rulebook.md">analysis-rulebook.md</a></div><div class="body">系統不可違反的分析與輸出原則。</div></div>
+          <div class="doc-card"><div class="k">PR Draft</div><div class="v"><a href="./docs/PR_DESCRIPTION.md">PR_DESCRIPTION.md</a></div><div class="body">可直接拿去整理 pull request 說明的基礎版本。</div></div>
         </div>
       </article>
     </section>
 
-    <div class="footer">StockPilot AI · AI Investment OS · GitHub Pages</div>
+    <div class="footer">StockPilot AI · Session-isolated LLM architecture for Taiwan stock analysis</div>
   </div>
 </body>
 </html>
